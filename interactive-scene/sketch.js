@@ -1,11 +1,3 @@
-// Project Title
-// Your Name
-// Date
-//
-// Extra for Experts:
-// - describe what you did to take this project "above and beyond"
-
-
 // p5.js Interactive Scene Assignment
 // Mark Meng
 // Comp Sci 30, P4
