@@ -10,13 +10,19 @@
 // Stating Variables
 let radius = 40;
 let circleSize = radius;
-let sizeChange = 5;
+let sizeChange = 3;
 let shapeType = 'circle'; // Default shape
 let backgroundColor = 150;
 let colorChange = 20;
+let brush;
 
 
 // Setup and Draw
+
+function preload() {
+  brush = loadImage("brush.png");
+}
+
 function setup() {
   // Makes it so that the size of the window is adjusted to / filled by the canvas
   createCanvas(windowWidth, windowHeight);
@@ -24,6 +30,7 @@ function setup() {
 }
 
 function draw() {
+  cursor(CROSS, mouseX, mouseY)
 }
 
 
@@ -41,7 +48,6 @@ function mouseDragged(){
 }
 
 function drawShape() {
- 
   noStroke();
   
   // Draw the selected shape
@@ -92,4 +98,3 @@ function keyPressed() {
     setup()
   }
 }
-
