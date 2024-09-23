@@ -12,10 +12,7 @@ let radius = 40;
 let circleSize = radius;
 let sizeChange = 5;
 let shapeType = 'circle'; // Default shape
-let r = 200;
-let g = 200;
-let b = 200;
-let backgroundColor = (r, g, b);
+let backgroundColor = 150;
 let colorChange = 20;
 
 
@@ -38,7 +35,7 @@ function mouseDragged(){
     drawShape(); 
   }
   if (mouseButton === RIGHT){
-    fill(200);
+    fill(backgroundColor);
     drawShape();
   }
 }
@@ -86,15 +83,13 @@ function keyPressed() {
     clear()
     setup()
   }
-}
-
-function colorChange(){
-  if (keyIsDown(82)){
-    if (keyIsDown(UP_ARROW)){
-      r + colorChange
-    if (keyIsDown(DOWN_ARROW)){
-      r - colorChange
-    }
+  else if (key === 'o') {
+    backgroundColor = backgroundColor + colorChange;
+    setup()
+  }
+  else if (key === 'p') {
+    backgroundColor = backgroundColor - colorChange;
+    setup()
   }
 }
-}
+
