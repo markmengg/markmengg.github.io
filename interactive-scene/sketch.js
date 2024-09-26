@@ -12,28 +12,56 @@ let radius = 40;
 let circleSize = radius;
 const sizeChange = 3;
 let shapeType = "circle"; // Default shape
-let backgroundColor = 150;
-let colorChange = 20;
+let backgroundShade = 150;
+let shadeChange = 15;
 let brush;
 
 
 // Setup and Draw
 
-function preload() {
-  brush = loadImage("brush.png");
-}
-
 function setup() {
   // Makes it so that the size of the window is adjusted to / filled by the canvas
   createCanvas(windowWidth, windowHeight);
-  background(backgroundColor);
+  background(backgroundShade);
   frameRate(60);
 }
 
+
+
 function draw() {
+  PenDisplay();
+  textDisplay();
+}
+
+
+
+
+function PenDisplay() {
+  // shows pen
   cursor(CROSS, mouseX, mouseY);
 }
 
+function textDisplay() {
+  // refreshes the display size indicator
+  fill(backgroundShade, 200);
+  noStroke();
+  rect(0, 0, 200, 60);
+  
+  // display size/background shade indicator     
+  fill("black");
+  textSize(20);
+  text(`Size: ${circleSize}`, 10, 30);
+
+  fill("black");
+  textSize(20);
+  text(`Background Shade: ${backgroundShade}`, 10, 50);
+
+  // display keyboard controls
+  fill("black");
+  textSize(12);
+  text("1: Circle | 2: Square | 3: Triangle", 10, 70);
+  text("E: Reset Stroke Size | Q: Clear Screen | O / P: Change Background Shade", 10, 90);
+}
 
 function mouseDragged(){
   if (mouseButton === LEFT){
@@ -42,8 +70,9 @@ function mouseDragged(){
     fill(shapeColor);
     drawShape(); 
   }
+  // Eraser
   if (mouseButton === RIGHT){
-    fill(backgroundColor);
+    fill(backgroundShade);
     drawShape();
   }
 }
@@ -51,7 +80,7 @@ function mouseDragged(){
 function drawShape() {
   noStroke();
   
-  // Draw the selected shape
+  // Shape Select
   if (shapeType === "circle") {
     circle(mouseX, mouseY, circleSize);
   }
@@ -75,7 +104,7 @@ function mouseWheel(event) {
   }
 }
 
-// When user presses any key on the keyboard, it changes resets circleSize and shape to circle. If they press S, it turns into a square. If they press T, it turns into a triangle
+// User Controls - Allows User to Manipulate Canvas
 function keyPressed() {
   if (key === "1") {
     shapeType = "circle"; // Change to circle
@@ -93,12 +122,16 @@ function keyPressed() {
     clear();
     setup();
   }
-  else if (key === "o") {
-    backgroundColor = backgroundColor + colorChange;
-    setup();
-  }
   else if (key === "p") {
-    backgroundColor = backgroundColor - colorChange;
-    setup();
+    if (backgroundShade < 255) {
+      backgroundShade = backgroundShade + shadeChange;
+      setup();
+    }
+  }
+  else if (key === "o") {
+    if (backgroundShade > 0) {
+      backgroundShade = backgroundShade - shadeChange;
+      setup();
+    }
   }
 }
