@@ -14,23 +14,42 @@ let radius = 40;
 let circleSize = radius;
 const sizeChange = 3;
 let shapeType = "circle"; // Default shape
-let backgroundShade = 150;
-let shadeChange = 15;
+let backgroundShade = 210;
+const shadeChange = 15;
 let useColorPicker = false;
 let colorPicker;
-let canvasSnapshots = [];
+const canvasSnapshots = [];
 let isDrawing = false;
 
 
+
+// Functions
+
 function setup() {
-  // Only create canvas when gameState is "drawing"
+  gameCanvas();
+}
+
+function draw() {
+  startGame();
+}
+
+function showTitleScreen() {
+  // Creates starting screen
+  background(200); 
+  textAlign(CENTER);
+  textSize(50);
+  fill("black");
+  text("Free Draw", windowWidth / 2, windowHeight / 2 - 50);  // Title text
+}
+
+function gameCanvas() {
   if (gameState === "start") {
     // Start screen setup
     createCanvas(windowWidth, windowHeight);
     background(200);
     
     // Create a start button
-    startButton = createButton('Start Drawing');
+    startButton = createButton("Start Drawing");
     startButton.position(windowWidth / 2 - 50, windowHeight / 2 + 20);
     startButton.mousePressed(startDrawing);
   } 
@@ -39,8 +58,21 @@ function setup() {
     background(backgroundShade);
     frameRate(60);
 
-    colorPicker = createColorPicker('ff0000');
+    colorPicker = createColorPicker("ff0000");
     colorPicker.position(10, 150);
+  }
+}
+
+
+function startGame() {
+  if (gameState === "start") {
+    // Shows start screen
+    showTitleScreen();
+  } 
+  else if (gameState === "drawing") {
+    // Shows drawing canvas
+    PenDisplay();
+    textDisplay();
   }
 }
 
@@ -50,31 +82,6 @@ function startDrawing() {
   clear();
   setup(); 
 }
-
-function startGame() {
-  if (gameState === "start") {
-    // Show the start screen
-    showTitleScreen();
-  } 
-  else if (gameState === "drawing") {
-    // Show the drawing canvas
-    PenDisplay();
-    textDisplay();
-  }
-}
-
-function showTitleScreen() {
-  background(200);  // Set background for the start screen
-  textAlign(CENTER);
-  textSize(50);
-  fill("black");
-  text("Free Draw", windowWidth / 2, windowHeight / 2 - 50);  // Title text
-}
-
-function draw() {
-  startGame();
-}
-
 
 function PenDisplay() {
   // shows pen
@@ -93,23 +100,22 @@ function textDisplay() {
 
   // Display size/background shade indicator
   textSize(20);
-  text(`Size: ${circleSize}`, width / 2, 30); // Centering horizontally
-  text(`Background Shade: ${backgroundShade}`, width / 2, 50); // Centering horizontally
+  text(`Size: ${circleSize}`, width / 2, 30);
+  text(`Background Shade: ${backgroundShade}`, width / 2, 50);
 
   // Display keyboard controls
   textSize(12);
-  text("1: Circle | 2: Square | 3: Triangle", width / 2, 70); // Centering horizontally
-  text("E: Reset Stroke Size | Q: Clear Screen | O / P: Change Background Shade", width / 2, 90); // Centering horizontally
-  text("Z: Undo", width / 2, 110); // Centering horizontally
+  text("1: Circle | 2: Square | 3: Triangle", width / 2, 70);
+  text("E: Reset Stroke Size | Z: Clear Screen | O / P: Change Background Shade", width / 2, 90);
+  text("Q: Undo", width / 2, 110);
 
   // Clear the area before updating the color picker mode
   fill(backgroundShade, 200);
   noStroke();
-  rect(0, 120, width, 20); // Adjust width to full canvas width
+  rect(0, 120, width, 20);
 
-  // Update the color picker mode
-  fill(textColor); // Use the same text color logic
-  text(`Color Picker Mode: ${useColorPicker ? "ON" : "OFF"}`, width / 2, 130); // Centering horizontally
+  fill(textColor);
+  text(`Color Picker Mode: ${useColorPicker ? "ON" : "OFF"}`, width / 2, 130);
 }
 
 function mousePressed() {
@@ -123,14 +129,14 @@ function mouseReleased() {
   isDrawing = false;
 }
 
-
 function mouseDragged() {
 
   if (isDrawing) {
     let shapeColor;
     if (useColorPicker) {
-      shapeColor = colorPicker.color(); // Use color picker
-    } else {
+      shapeColor = colorPicker.color();
+    }
+    else {
       shapeColor = [map(mouseX, 0, width, 255, 0), 0, map(mouseY, 0, height, 255, 0)];
     }
     fill(shapeColor);
@@ -161,15 +167,17 @@ function drawShape() {
 
 
 function saveCanvasState() {
-  // Save current canvas state as an image
+  // Save current canvas state as an image, enables ability to undo
   canvasSnapshots.push(get());
 }
 
 function undoLastAction() {
   if (canvasSnapshots.length > 0) {
-    let previousCanvas = canvasSnapshots.pop(); // Get the last saved state
-    clear(); // Clear the canvas
-    image(previousCanvas, 0, 0); // Restore the previous state
+    // Get the last saved state
+    let previousCanvas = canvasSnapshots.pop();
+    clear();
+    // Restore the previous state
+    image(previousCanvas, 0, 0);
   }
 }
 
@@ -198,28 +206,29 @@ function keyPressed() {
     shapeType = "triangle"; // Default to triangle
   }
   else if (key === "e") {
-    circleSize = radius; // Reset size
+    circleSize = radius; // Reset size of brush
   }
-  else if (key === "q") {
-    clear();
+  else if (key === "z") {
+    // Resets the code
+    clear(); 
     setup();
   }
   else if (key === "p") {
-    if (backgroundShade < 255) {
+    if (backgroundShade < 255) { // Increases background shade if its below the rgb cap of 255
       backgroundShade = backgroundShade + shadeChange;
       setup();
     }
   }
   else if (key === "o") {
-    if (backgroundShade > 0) {
+    if (backgroundShade > 0) { // Decreases background shade if its below the rgb minimum of 0
       backgroundShade = backgroundShade - shadeChange;
       setup();
     }
   }
-  else if (key === "z") {
-    undoLastAction();
+  else if (key === "q") {
+    undoLastAction(); // Undos the most recent stroke
   }
   else if (key === "c") {
-    useColorPicker = !useColorPicker;
+    useColorPicker = !useColorPicker; // Toggles user's choice to choose their own colors
   }
 }

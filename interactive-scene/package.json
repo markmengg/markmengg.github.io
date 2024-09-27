@@ -457,7 +457,8 @@
       "collidePolyPoly": true,
       "collidePointTriangle": true,
 
-      "deltaTime": true
+      "deltaTime": true,
+      "createColorPicker": true
     }
   }
 }
