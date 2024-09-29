@@ -7,22 +7,24 @@
 
 // START OF CODE
 
-// Stating Variables
+// ----- Constants and Variables -----
+
 let gameState = "start";
-let startButton;
-let radius = 40;
-let circleSize = radius;
 let shapeType = "circle";
-let backgroundShade = 210;
-let useColorPicker = false;
+let startButton;
 let colorPicker;
+let radius = 40;
+let backgroundShade = 210;
+let circleSize = radius;
+let useColorPicker = false;
 let isDrawing = false;
 const sizeChange = 3;
 const shadeChange = 15;
 const canvasSnapshots = [];
 
 
-// Functions
+
+// ----- Setup and Main Loop -----
 
 function setup() {
   gameCanvas();
@@ -32,6 +34,29 @@ function draw() {
   startGame();
 }
 
+
+
+// ----- Game State Management -----
+
+function startGame() {
+  if (gameState === "start") {
+    // Shows start screen
+    showTitleScreen();
+  } 
+  else if (gameState === "drawing") {
+    // Shows drawing canvas
+    PenDisplay();
+    textDisplay();
+  }
+}
+
+function startDrawing() {
+  // (In separate function or else it will be an infinite loop)
+  gameState = "drawing";
+  startButton.remove();
+  clear();
+  setup(); 
+}
 
 function showTitleScreen() {
   // Creates starting screen
@@ -44,17 +69,16 @@ function showTitleScreen() {
 
 function gameCanvas() {
   if (gameState === "start") {
-    // Start screen setup
     createCanvas(windowWidth, windowHeight);
     background(200);
-
+    
     // Creates a start button
     startButton = createButton("Start Drawing");
     startButton.position(windowWidth / 2 - 50, windowHeight / 2 + 20);
     startButton.mousePressed(startDrawing);
   } 
   else if (gameState === "drawing") {
-    // Creates the paint canvas if start button clicked
+    // Creates paint canvas
     createCanvas(windowWidth, windowHeight);
     background(backgroundShade);
     frameRate(60);
@@ -64,27 +88,101 @@ function gameCanvas() {
   }
 }
 
-function startDrawing() {
-  // Removes all traces of start screen, transitions into paint canvas
-  // In separate function or else it will create an infinite loop
-  gameState = "drawing";
-  startButton.remove();
-  clear();
-  setup(); 
-}
 
-function startGame() {
-  if (gameState === "start") {
-    showTitleScreen();
-  } 
-  else if (gameState === "drawing") {
-    PenDisplay();
-    textDisplay();
+
+// ----- Input and Handling -----
+
+function mousePressed() {
+  // Saves entire stroke as a canvas state (refer to function on line 238)
+  if (mouseButton === LEFT) {
+    saveCanvasState();
+    isDrawing = true;
   }
 }
 
-function penDisplay() {
-  // shows pen
+function mouseReleased() {
+  isDrawing = false;
+}
+
+function mouseDragged() {
+  // User's paint color is based on if they have color picker mode on or not
+  if (isDrawing) {
+    let shapeColor;
+    if (useColorPicker) {
+      shapeColor = colorPicker.color();
+    }
+    else {
+      shapeColor = [map(mouseX, 0, width, 255, 0), 0, map(mouseY, 0, height, 255, 0)];
+    }
+    fill(shapeColor);
+    drawShape();
+  }
+
+  // Eraser
+  if (mouseButton === RIGHT) {
+    fill(backgroundShade);
+    drawShape();
+  }
+}
+
+
+// Increases the size of the shape when the user scrolls the mouse wheel. (Scroll up = increase size, scroll down = decrease size)
+function mouseWheel(event) {
+  let direction = event.delta;
+  
+  if (direction > 0 && circleSize > 5) {
+    circleSize -= sizeChange;
+  }
+  else {
+    circleSize += sizeChange;
+  }
+}
+
+// User Controls - Allows User to Manipulate Canvas
+function keyPressed() {
+  if (key === "1") {
+    shapeType = "circle";
+  } 
+  else if (key === "2") {
+    shapeType = "square";
+  }
+  else if (key === "3") {
+    shapeType = "triangle";
+  }
+  else if (key === "e") {
+    circleSize = radius;
+  }
+  else if (key === "z") {
+    clear(); 
+    setup();
+  }
+  else if (key === "p") {
+    // Increases background shade if its below the rgb cap of 255
+    if (backgroundShade < 255) {
+      backgroundShade = backgroundShade + shadeChange;
+      setup();
+    }
+  }
+  else if (key === "o") {
+    // Decreases background shade if its below the rgb minimum of 0
+    if (backgroundShade > 0) {
+      backgroundShade = backgroundShade - shadeChange;
+      setup();
+    }
+  }
+  else if (key === "q") {
+    undoLastAction();
+  }
+  else if (key === "c") {
+    useColorPicker = !useColorPicker;
+  }
+}
+
+
+
+// ----- Drawing and Display Functions ----- 
+
+function PenDisplay() {
   cursor(CROSS, mouseX, mouseY);
 }
 
@@ -118,38 +216,6 @@ function textDisplay() {
   text(`Color Picker Mode: ${useColorPicker ? "ON" : "OFF"}`, width / 2, 130);
 }
 
-function mousePressed() {
-  if (mouseButton === LEFT) {
-    saveCanvasState();
-    isDrawing = true;
-  }
-}
-
-function mouseReleased() {
-  isDrawing = false;
-}
-
-function mouseDragged() {
-
-  if (isDrawing) {
-    let shapeColor;
-    if (useColorPicker) {
-      shapeColor = colorPicker.color();
-    }
-    else {
-      shapeColor = [map(mouseX, 0, width, 255, 0), 0, map(mouseY, 0, height, 255, 0)];
-    }
-    fill(shapeColor);
-    drawShape();
-  }
-
-  // Eraser
-  if (mouseButton === RIGHT) {
-    fill(backgroundShade);
-    drawShape();
-  }
-}
-
 function drawShape() {
   noStroke();
   
@@ -166,6 +232,9 @@ function drawShape() {
 }
 
 
+
+// ----- Undo and Canvas State Management -----
+
 function saveCanvasState() {
   // Save current canvas state as an image, enables ability to undo
   canvasSnapshots.push(get());
@@ -178,57 +247,5 @@ function undoLastAction() {
     clear();
     // Restore the previous state
     image(previousCanvas, 0, 0);
-  }
-}
-
-
-// Increases the size of the shape when the user scrolls the mouse wheel. (Scroll up = increase size, scroll down = decrease size)
-function mouseWheel(event) {
-  let direction = event.delta;
-  
-  if (direction > 0 && circleSize > 5) {
-    circleSize -= sizeChange;
-  }
-  else {
-    circleSize += sizeChange;
-  }
-}
-
-// User Controls - Allows User to Manipulate Canvas
-function keyPressed() {
-  if (key === "1") {
-    shapeType = "circle"; // Change to circle
-  } 
-  else if (key === "2") {
-    shapeType = "square"; // Change to square
-  }
-  else if (key === "3") {
-    shapeType = "triangle"; // Default to triangle
-  }
-  else if (key === "e") {
-    circleSize = radius; // Reset size of brush
-  }
-  else if (key === "z") {
-    // Resets the code
-    clear(); 
-    setup();
-  }
-  else if (key === "p") {
-    if (backgroundShade < 255) { // Increases background shade if its below the rgb cap of 255
-      backgroundShade = backgroundShade + shadeChange;
-      setup();
-    }
-  }
-  else if (key === "o") {
-    if (backgroundShade > 0) { // Decreases background shade if its below the rgb minimum of 0
-      backgroundShade = backgroundShade - shadeChange;
-      setup();
-    }
-  }
-  else if (key === "q") {
-    undoLastAction(); // Undos the most recent stroke
-  }
-  else if (key === "c") {
-    useColorPicker = !useColorPicker; // Toggles user's choice to choose their own colors
   }
 }
