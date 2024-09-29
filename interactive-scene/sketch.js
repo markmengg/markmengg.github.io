@@ -12,15 +12,14 @@ let gameState = "start";
 let startButton;
 let radius = 40;
 let circleSize = radius;
-const sizeChange = 3;
-let shapeType = "circle"; // Default shape
+let shapeType = "circle";
 let backgroundShade = 210;
-const shadeChange = 15;
 let useColorPicker = false;
 let colorPicker;
-const canvasSnapshots = [];
 let isDrawing = false;
-
+const sizeChange = 3;
+const shadeChange = 15;
+const canvasSnapshots = [];
 
 
 // Functions
@@ -33,13 +32,14 @@ function draw() {
   startGame();
 }
 
+
 function showTitleScreen() {
   // Creates starting screen
   background(200); 
   textAlign(CENTER);
   textSize(50);
   fill("black");
-  text("Free Draw", windowWidth / 2, windowHeight / 2 - 50);  // Title text
+  text("Free Draw", windowWidth / 2, windowHeight / 2 - 50);
 }
 
 function gameCanvas() {
@@ -47,13 +47,14 @@ function gameCanvas() {
     // Start screen setup
     createCanvas(windowWidth, windowHeight);
     background(200);
-    
-    // Create a start button
+
+    // Creates a start button
     startButton = createButton("Start Drawing");
     startButton.position(windowWidth / 2 - 50, windowHeight / 2 + 20);
     startButton.mousePressed(startDrawing);
   } 
   else if (gameState === "drawing") {
+    // Creates the paint canvas if start button clicked
     createCanvas(windowWidth, windowHeight);
     background(backgroundShade);
     frameRate(60);
@@ -63,27 +64,26 @@ function gameCanvas() {
   }
 }
 
-
-function startGame() {
-  if (gameState === "start") {
-    // Shows start screen
-    showTitleScreen();
-  } 
-  else if (gameState === "drawing") {
-    // Shows drawing canvas
-    PenDisplay();
-    textDisplay();
-  }
-}
-
 function startDrawing() {
+  // Removes all traces of start screen, transitions into paint canvas
+  // In separate function or else it will create an infinite loop
   gameState = "drawing";
   startButton.remove();
   clear();
   setup(); 
 }
 
-function PenDisplay() {
+function startGame() {
+  if (gameState === "start") {
+    showTitleScreen();
+  } 
+  else if (gameState === "drawing") {
+    PenDisplay();
+    textDisplay();
+  }
+}
+
+function penDisplay() {
   // shows pen
   cursor(CROSS, mouseX, mouseY);
 }
@@ -91,12 +91,12 @@ function PenDisplay() {
 function textDisplay() {
   fill(backgroundShade, 200);
   noStroke();
-  rect(0, 0, width, 140); // Adjust width to full canvas width
+  rect(0, 0, width, 140);
 
   // Set text color based on background shade
   let textColor = backgroundShade < 128 ? "white" : "black";
   fill(textColor);
-  textAlign(CENTER); // Center the text
+  textAlign(CENTER);
 
   // Display size/background shade indicator
   textSize(20);
