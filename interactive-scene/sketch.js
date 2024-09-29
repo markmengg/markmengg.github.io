@@ -93,7 +93,7 @@ function gameCanvas() {
 // ----- Input and Handling -----
 
 function mousePressed() {
-  // Saves entire stroke as a canvas state (refer to function on line 238)
+  // Saves entire stroke as a canvas state (refer to function on line 237)
   if (mouseButton === LEFT) {
     saveCanvasState();
     isDrawing = true;
@@ -125,9 +125,8 @@ function mouseDragged() {
   }
 }
 
-
-// Increases the size of the shape when the user scrolls the mouse wheel. (Scroll up = increase size, scroll down = decrease size)
 function mouseWheel(event) {
+  // Increases the size of the shape when the user scrolls the mouse wheel. (Scroll up = increase size, scroll down = decrease size)
   let direction = event.delta;
   
   if (direction > 0 && circleSize > 5) {
@@ -138,8 +137,8 @@ function mouseWheel(event) {
   }
 }
 
-// User Controls - Allows User to Manipulate Canvas
 function keyPressed() {
+  // User Controls - Allows User to Manipulate Canvas
   if (key === "1") {
     shapeType = "circle";
   } 
