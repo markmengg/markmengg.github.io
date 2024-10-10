@@ -6,26 +6,32 @@
 // Extra for Experts:
 // - describe what you did to take this project "above and beyond"
 
-let bg;
-let width = 548;
-let height = 483;
+let width = 700;
+let height = 600;
 
 
 function setup() {
   createCanvas(width, height);
-  bg = loadImage("snakeBG.jpg");
 }
 
 function draw() {
-  background(bg);
+  background(255);
   drawGrid();   
 }
 
 function drawGrid() {
+  let isLightGreen = true;
   for (let y = 0; y < theGrid.yAmount; y++) {
-    for (let x = 0; x < theGrid.xAmount; x++){     
+    for (let x = 0; x < theGrid.xAmount; x++){ 
+      if (isLightGreen) {
+        fill (165, 235, 104);
+      }
+      else {
+        fill(152, 219, 94);
+      }
       noStroke();
       rect(x*theGrid.xSize, y*theGrid.ySize, theGrid.xSize, theGrid.ySize);
+      isLightGreen = !isLightGreen;
     }
   }
 }
