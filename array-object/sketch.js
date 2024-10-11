@@ -8,7 +8,8 @@
 
 let width = 700;
 let height = 600;
-
+let snake = [];
+let apples = [];
 
 function setup() {
   createCanvas(width, height);
