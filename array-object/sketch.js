@@ -7,7 +7,7 @@
 // - describe what you did to take this project "above and beyond"
 
 
-let direction = {x: 1, y: 0}
+let direction = {x: 1, y: 0};
 let width = 700;
 let height = 600;
 let snake = [{x: 8, y: 7}];
@@ -19,7 +19,8 @@ let theGrid = {
   ySize: height/15,
 };
 let moveInterval = 150;
-let lastMoveTime = 0
+let lastMoveTime = 0;
+// let isGameOver = false
 
 
 function setup() {
@@ -67,7 +68,7 @@ function moveSnake() {
   let newHead = {
     x: snake[0].x + direction.x,
     y: snake[0].y + direction.y,
-  }
+  };
   snake.unshift(newHead);
   snake.pop();
 }
@@ -76,11 +77,14 @@ function moveSnake() {
 function keyPressed() {
   if (keyCode === UP_ARROW || key === 'W') {
     direction = {x: 0, y: -1};
-  } else if (keyCode === DOWN_ARROW || key === 'S') {
+  }
+  else if (keyCode === DOWN_ARROW || key === 'S') {
     direction = {x: 0, y: 1};
-  } else if (keyCode === LEFT_ARROW || key === 'A') {
+  } 
+  else if (keyCode === LEFT_ARROW || key === 'A') {
     direction = {x: -1, y: 0};
-  } else if (keyCode === RIGHT_ARROW || key === 'D') {
+  } 
+  else if (keyCode === RIGHT_ARROW || key === 'D') {
     direction = {x: 1, y: 0};
   }
 }
@@ -102,6 +106,8 @@ function spawnApple() {
 
 
 function checkCollisions() {
+  let isGameOver = false;
+
   let head = snake[0];
   for (let i = 0; i < apples.length; i++) {
     if (head.x === apples[i].x && head.y === apples[i].y) {
@@ -109,5 +115,19 @@ function checkCollisions() {
       spawnApple();
       snake.push({});
     }
+  }
+  if (head.x < 0  || head.x >= theGrid.xAmount  || head.y < 0  || head.y >= theGrid.yAmount ) {
+    isGameOver = true;
+  }
+
+  for (let i = 1; i < snake.length; i++){
+    if (head.x === snake[i].x && head.y === snake[i].y) {
+      isGameOver = true;
+    }
+  }
+  
+  if (isGameOver === true) {
+    noLoop();
+    console.log("Game Over");
   }
 }
