@@ -21,10 +21,17 @@ let theGrid = {
 let moveInterval = 150;
 let lastMoveTime = 0;
 // let isGameOver = false
+let mines = [];
+let AppleSound;
 
 
+
+function preload() {
+  AppleSound = loadSound("pop.mp3");
+}
 function setup() {
   createCanvas(width, height);
+  AppleSound.amp(1);
   spawnApple();
 }
 
@@ -114,6 +121,7 @@ function checkCollisions() {
       apples.splice(i, 1);
       spawnApple();
       snake.push({});
+      AppleSound.play();
     }
   }
   if (head.x < 0  || head.x >= theGrid.xAmount  || head.y < 0  || head.y >= theGrid.yAmount ) {
@@ -131,3 +139,5 @@ function checkCollisions() {
     console.log("Game Over");
   }
 }
+
+

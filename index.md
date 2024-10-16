@@ -9,6 +9,7 @@
 - [Perlin Noise Ball](perlin)
 - [Terrain Generation](terrain)
 - [Bubble Popping Demo](bubbles)
+- [Sound Effects Demo](soundfx)
 
 ## Projects
 - [Interactive Scene](interactive-scene)
