@@ -6,6 +6,11 @@
 // Extra for Experts:
 // - describe what you did to take this project "above and beyond"
 
+// To do list: Create end screen and music, foolproof self collisions, sub in pictures for mines and apples, could change music depending on difficulty levels (Easy diff = peaceful music)
+// Make end game a global variable and triggers end screen along with music and restart option, user cuztomizable soundfx volume, snake customization, visual feedback upon mine or wall collision
+// Particle effects? Scoring system. Speed of snake upon difficulty (Maybe create mine diff and speed diff)
+
+
 
 let direction = {x: 1, y: 0};
 let width = 700;
