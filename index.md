@@ -10,6 +10,7 @@
 - [Terrain Generation](terrain)
 - [Bubble Popping Demo](bubbles)
 - [Sound Effects Demo](soundfx)
+- [Translate Rotate](trans-rotate)
 
 ## Projects
 - [Interactive Scene](interactive-scene)

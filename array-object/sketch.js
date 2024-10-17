@@ -6,10 +6,9 @@
 // Extra for Experts:
 // - describe what you did to take this project "above and beyond"
 
-// To do list: Create end screen and music, foolproof self collisions, sub in pictures for mines and apples, could change music depending on difficulty levels (Easy diff = peaceful music)
+// To do list: Create end screen and music, foolproof self collisions, could change music depending on difficulty levels (Easy diff = peaceful music)
 // Make end game a global variable and triggers end screen along with music and restart option, user cuztomizable soundfx volume, snake customization, visual feedback upon mine or wall collision
 // Particle effects? Scoring system. Speed of snake upon difficulty (Maybe create mine diff and speed diff)
-
 
 
 let direction = {x: 1, y: 0};
@@ -31,6 +30,8 @@ let appleSound, dieSound, mineSound;
 let bgMusic;
 let gameStarted = false;
 let slider, startButton;
+let appleImage, mineImage;
+let isGameOver = false;
 
 
 
@@ -40,7 +41,9 @@ function preload() {
   appleSound = loadSound("pop.mp3");
   dieSound = loadSound("bomb.wav");
   mineSound = loadSound("laser.wav");
-  bgMusic = loadSound("BackgroundTheme.mp3")
+  bgMusic = loadSound("BackgroundTheme.mp3");
+  appleImage = loadImage("apple.png");
+  mineImage = loadImage("mine.png");
 }
 
 
@@ -50,15 +53,17 @@ function setup() {
   slider = createSlider(0, 40, 0);
   slider.position(width / 2.5, height / 2 + 80);
 
-
   startButton = createButton("Start Game");
   startButton.position(slider.x + 20, slider.y - 40);
   startButton.mousePressed(startGame);
 
+  colorPicker = createColorPicker("ff0000");
+  colorPicker.position(slider.x + 20, slider.y + 40);
+
   appleSound.amp(1);
-  dieSound.amp(1)
-  mineSound.amp(0.9)
-  bgMusic.amp(0.015)
+  dieSound.amp(1);
+  mineSound.amp(0.9);
+  bgMusic.amp(0.015);
 }
 
 function draw() {
@@ -91,8 +96,10 @@ function draw() {
 
 
 function startGame() { 
+
   let numMines = slider.value();
-  
+
+  colorPicker.hide();
   spawnApple();
   spawnMines(numMines);
   
@@ -125,9 +132,13 @@ function drawGrid() {
 }
 
 function drawSnake() {
+
+  let snakeColor;
+  snakeColor = colorPicker.color();
+
   for (let i = 0; i < snake.length; i++) {
 
-    fill(110, 165, 255);
+    fill(snakeColor);
     rect(snake[i].x * theGrid.xSize, snake[i].y * theGrid.ySize, theGrid.xSize, theGrid.ySize);
 
    
@@ -147,13 +158,16 @@ function drawEyes(x, y) {
   if (direction.x === 1) { 
     ellipse((x + 1) * theGrid.xSize - offsetX, y * theGrid.ySize + offsetY, eyeSize, eyeSize);
     ellipse((x + 1) * theGrid.xSize - offsetX, (y + 1) * theGrid.ySize - offsetY, eyeSize, eyeSize);
-  } else if (direction.x === -1) {
+  }
+  else if (direction.x === -1) {
     ellipse(x * theGrid.xSize + offsetX, y * theGrid.ySize + offsetY, eyeSize, eyeSize);
     ellipse(x * theGrid.xSize + offsetX, (y + 1) * theGrid.ySize - offsetY, eyeSize, eyeSize);
-  } else if (direction.y === 1) {
+  } 
+  else if (direction.y === 1) {
     ellipse(x * theGrid.xSize + offsetX, (y + 1) * theGrid.ySize - offsetY, eyeSize, eyeSize);
     ellipse((x + 1) * theGrid.xSize - offsetX, (y + 1) * theGrid.ySize - offsetY, eyeSize, eyeSize);
-  } else if (direction.y === -1) { 
+  } 
+  else if (direction.y === -1) { 
     ellipse(x * theGrid.xSize + offsetX, y * theGrid.ySize + offsetY, eyeSize, eyeSize);
     ellipse((x + 1) * theGrid.xSize - offsetX, y * theGrid.ySize + offsetY, eyeSize, eyeSize);
   }
@@ -185,9 +199,8 @@ function keyPressed() {
 }
 
 function drawApples() {
-  fill(255, 0, 0);
   for (let i = 0; i < apples.length; i++) {
-    rect(apples[i].x * theGrid.xSize, apples[i].y * theGrid.ySize, theGrid.xSize, theGrid.ySize);
+    image(appleImage, apples[i].x * theGrid.xSize, apples[i].y * theGrid.ySize, theGrid.xSize, theGrid.ySize);
   }
 }
 
@@ -227,15 +240,9 @@ function checkCollisions() {
 
   for (let i = 0; i < mines.length; i++) {
     if (head.x === mines[i].x && head.y === mines[i].y) {
-      if (snake.length > 1) {
-        snake.pop();
-        mineSound.play();
-      }
-
-      if (snake.length === 1) {
-        isGameOver = true;
-        dieSound.play();
-      }
+      snake.pop();
+      mineSound.play();
+      isGameOver = true;
     }
   }
 
@@ -259,8 +266,14 @@ function spawnMines(numMines) {
 }
 
 function drawMines() {
-  fill(0);
   for (let i = 0; i < mines.length; i++) {
-    rect(mines[i].x * theGrid.xSize, mines[i].y * theGrid.ySize, theGrid.xSize, theGrid.ySize);
+    image(mineImage, mines[i].x * theGrid.xSize, mines[i].y * theGrid.ySize, theGrid.xSize, theGrid.ySize);
+  }
+}
+
+
+function endGame(){
+  if (isGameOver === true) {
+    background(255);
   }
 }
