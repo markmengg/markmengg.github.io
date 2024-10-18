@@ -7,8 +7,8 @@
 // - describe what you did to take this project "above and beyond"
 
 // To do list: Create end screen and music, foolproof self collisions, could change music depending on difficulty levels (Easy diff = peaceful music)
-// Make end game a global variable and triggers end screen along with music and restart option, user cuztomizable soundfx volume, snake customization, visual feedback upon mine or wall collision
-// Particle effects? Scoring system. Speed of snake upon difficulty (Maybe create mine diff and speed diff)
+//restart option, user cuztomizable soundfx volume, visual feedback upon mine or wall collision
+// Particle effects? Scoring system with highscore. Speed of snake upon difficulty (Maybe create mine diff and speed diff)
 
 
 let direction = {x: 1, y: 0};
@@ -27,11 +27,14 @@ let lastMoveTime = 0;
 // let isGameOver = false
 let mines = [];
 let appleSound, dieSound, mineSound;
-let bgMusic;
+let bgMusic, endMusic;
 let gameStarted = false;
 let slider, startButton;
 let appleImage, mineImage;
+let gameOver = false;
+let score = 0;
 let isGameOver = false;
+
 
 
 
@@ -42,6 +45,7 @@ function preload() {
   dieSound = loadSound("bomb.wav");
   mineSound = loadSound("laser.wav");
   bgMusic = loadSound("BackgroundTheme.mp3");
+  endMusic = loadSound("Sadness.ogg");
   appleImage = loadImage("apple.png");
   mineImage = loadImage("mine.png");
 }
@@ -58,28 +62,26 @@ function setup() {
   startButton.mousePressed(startGame);
 
   colorPicker = createColorPicker("ff0000");
-  colorPicker.position(slider.x + 20, slider.y + 40);
+  colorPicker.position(slider.x + 40, slider.y + 40);
 
   appleSound.amp(1);
   dieSound.amp(1);
   mineSound.amp(0.9);
   bgMusic.amp(0.015);
+  endMusic.amp(0.4);
 }
 
 function draw() {
 
   background(255);
 
-  if (!gameStarted) {
-    textAlign(CENTER, CENTER);
-    textSize(15);
-    fill(0);
-    text("Select Difficulty and Press Start", width / 2, height / 2 + 10);
+  if (!gameStarted && !gameOver) {
+    drawStartScreen();
+    return;
+  }
 
-    textAlign(CENTER, CENTER);
-    textSize(32);
-    fill("green");
-    text("SNAKE", width / 2, height / 2 - 50);
+  if (gameOver) {
+    drawEndScreen();
     return;
   }
 
@@ -99,11 +101,10 @@ function startGame() {
 
   let numMines = slider.value();
 
-  colorPicker.hide();
   spawnApple();
   spawnMines(numMines);
   
-
+  colorPicker.hide();
   slider.hide();
   startButton.hide();
   
@@ -214,7 +215,6 @@ function spawnApple() {
 
 
 function checkCollisions() {
-  let isGameOver = false;
 
   let head = snake[0];
   for (let i = 0; i < apples.length; i++) {
@@ -223,6 +223,7 @@ function checkCollisions() {
       spawnApple();
       snake.push({});
       appleSound.play();
+      score++;
     }
   }
   if (head.x < 0  || head.x >= theGrid.xAmount  || head.y < 0  || head.y >= theGrid.yAmount ) {
@@ -248,8 +249,8 @@ function checkCollisions() {
 
   
   if (isGameOver === true) {
-    noLoop();
-    console.log("Game Over");
+    gameOver = true;
+    gameStarted = false;
   }
 }
 
@@ -272,8 +273,35 @@ function drawMines() {
 }
 
 
-function endGame(){
-  if (isGameOver === true) {
-    background(255);
-  }
+function drawStartScreen(){
+  textAlign(CENTER, CENTER);
+  textSize(15);
+  fill(0);
+  text("Select Difficulty and Press Start", width / 2, height / 2 + 10);
+
+  textAlign(CENTER, CENTER);
+  textSize(50);
+  fill("green");
+  text("SNAKE", width / 2, height / 2 - 50);
+  return;
+}
+
+function drawEndScreen(){
+  clear();
+  setup();
+  background("red");
+  textAlign(CENTER, CENTER);
+  textSize(40);
+  fill("white");
+  text("GAME OVER", width / 2, height / 2 - 50);
+  text("Score: " + score, width/2, height/2);
+
+  bgMusic.stop();
+  endMusic.play();
+
+  colorPicker.hide();
+  slider.hide();
+  startButton.hide();
+  
+  return;
 }
