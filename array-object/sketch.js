@@ -24,7 +24,6 @@ let theGrid = {
 };
 let moveInterval = 150;
 let lastMoveTime = 0;
-// let isGameOver = false
 let mines = [];
 let appleSound, dieSound, mineSound;
 let bgMusic, endMusic;
@@ -45,7 +44,7 @@ function preload() {
   dieSound = loadSound("bomb.wav");
   mineSound = loadSound("laser.wav");
   bgMusic = loadSound("BackgroundTheme.mp3");
-  endMusic = loadSound("Sadness.ogg");
+  endMusic = loadSound("Endtheme.mp3");
   appleImage = loadImage("apple.png");
   mineImage = loadImage("mine.png");
 }
@@ -68,7 +67,7 @@ function setup() {
   dieSound.amp(1);
   mineSound.amp(0.9);
   bgMusic.amp(0.015);
-  endMusic.amp(0.4);
+  endMusic.amp(0.3);
 }
 
 function draw() {
@@ -150,7 +149,7 @@ function drawSnake() {
 }
 
 function drawEyes(x, y) {
-  fill(245);
+  fill(205);
   let eyeSize = theGrid.xSize / 4;
   let offsetX = theGrid.xSize / 3;
   let offsetY = theGrid.ySize / 3;
@@ -297,7 +296,7 @@ function drawEndScreen(){
   text("Score: " + score, width/2, height/2);
 
   bgMusic.stop();
-  endMusic.play();
+  endMusic.loop();
 
   colorPicker.hide();
   slider.hide();
