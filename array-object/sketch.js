@@ -1,14 +1,12 @@
-// Bloons TD6 Ripoff? some sort of tower/base defense game with pathways or snake
+// SNAKE GAME
 // Mark Meng
-// a star algorithm
-// October 8th, 2024
+// Mr. Schellenberg , Computer Science 30
+// October 21th, 2024
 
 // Extra for Experts:
 // - describe what you did to take this project "above and beyond"
 
-// To do list: Create end screen and music, foolproof self collisions, could change music depending on difficulty levels (Easy diff = peaceful music)
-//restart option, user cuztomizable soundfx volume, visual feedback upon mine or wall collision
-// Particle effects? Scoring system with highscore. Speed of snake upon difficulty (Maybe create mine diff and speed diff)
+// Clean up code
 
 
 let direction = {x: 1, y: 0};
@@ -33,6 +31,7 @@ let appleImage, mineImage;
 let gameOver = false;
 let score = 0;
 let isGameOver = false;
+let particles = [];
 
 
 
@@ -93,6 +92,8 @@ function draw() {
   drawSnake(); 
   drawApples();
   drawMines();
+
+  drawParticles();
 }
 
 
@@ -137,7 +138,7 @@ function drawSnake() {
   snakeColor = colorPicker.color();
 
   for (let i = 0; i < snake.length; i++) {
-
+    flashSnakeOnCollision();
     fill(snakeColor);
     rect(snake[i].x * theGrid.xSize, snake[i].y * theGrid.ySize, theGrid.xSize, theGrid.ySize);
 
@@ -184,16 +185,16 @@ function moveSnake() {
 
 
 function keyPressed() {
-  if (keyCode === UP_ARROW || key === 'W') {
+  if (keyCode === UP_ARROW) {
     direction = {x: 0, y: -1};
   }
-  else if (keyCode === DOWN_ARROW || key === 'S') {
+  else if (keyCode === DOWN_ARROW) {
     direction = {x: 0, y: 1};
   } 
-  else if (keyCode === LEFT_ARROW || key === 'A') {
+  else if (keyCode === LEFT_ARROW) {
     direction = {x: -1, y: 0};
   } 
-  else if (keyCode === RIGHT_ARROW || key === 'D') {
+  else if (keyCode === RIGHT_ARROW) {
     direction = {x: 1, y: 0};
   }
 }
@@ -223,6 +224,7 @@ function checkCollisions() {
       snake.push({});
       appleSound.play();
       score++;
+      spawnParticles(head.x, head.y, color(255,0,0));
     }
   }
   if (head.x < 0  || head.x >= theGrid.xAmount  || head.y < 0  || head.y >= theGrid.yAmount ) {
@@ -301,6 +303,47 @@ function drawEndScreen(){
   colorPicker.hide();
   slider.hide();
   startButton.hide();
-  
+
   return;
+}
+
+
+class Particle {
+  constructor(x, y, color) {
+    this.x = x;
+    this.y = y;
+    this.color = color;
+    this.lifespan = 100;
+  }
+
+  update() {
+    this.lifespan -= 3;
+  }
+
+  display() {
+    fill(this.color.levels[0], this.color.levels[1], this.color.levels[2], this.lifespan);
+    noStroke();
+    ellipse(this.x, this.y, 10);
+  }
+
+  isDead() {
+    return this.lifespan < 0;
+  }
+}
+
+
+function spawnParticles(x, y, color) {
+  for (let i = 0; i < 10; i++) {
+    particles.push(new Particle(x * theGrid.xSize + theGrid.xSize / 2, y * theGrid.ySize + theGrid.ySize / 2, color));
+  }
+}
+
+function drawParticles() {
+  for (let i = particles.length - 1; i >= 0; i--) {
+    particles[i].update();
+    particles[i].display();
+    if (particles[i].isDead()) {
+      particles.splice(i, 1);
+    }
+  }
 }
