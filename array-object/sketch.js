@@ -138,7 +138,6 @@ function drawSnake() {
   snakeColor = colorPicker.color();
 
   for (let i = 0; i < snake.length; i++) {
-    flashSnakeOnCollision();
     fill(snakeColor);
     rect(snake[i].x * theGrid.xSize, snake[i].y * theGrid.ySize, theGrid.xSize, theGrid.ySize);
 
