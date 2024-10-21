@@ -4,39 +4,48 @@
 // October 21th, 2024
 
 // Extra for Experts:
-// - describe what you did to take this project "above and beyond"
+// The most obvious demonstration of going "above and beyond" is my addition of classes. Classes encapsulate data that are specific to that within the class. In my code, I created a particle class that spawns upon collision between the snake and the apple, and slowly diminishes over time (lifespan)
+// array manipulation: unshift (adds to start of an array) pop (removes last term from array) splice (removes term from specific index) push (adds to array)
+// Addition of sliders, start buttons, and color pickers
+// Direction changers based on key pressed control the movement of the snake
 
-// Clean up code
 
+
+// START OF CODE
+
+// ----- Constants and Variables -----
 
 let direction = {x: 1, y: 0};
 let width = 700;
 let height = 600;
 let snake = [{x: 8, y: 7}];
 let apples = [];
+let mines = [];
+let particles = [];
+
+const moveInterval = 150;
+let lastMoveTime = 0;
+
+let appleSound, dieSound, mineSound;
+let appleImage, mineImage;
+let bgMusic, endMusic;
+
+let slider, startButton;
+
+let gameOver = false;
+let gameStarted = false;
+let isGameOver = false;
+let score = 0;
+
 let theGrid = {
   xAmount: 17,
   yAmount: 15,
   xSize: width/17,
   ySize: height/15,
 };
-let moveInterval = 150;
-let lastMoveTime = 0;
-let mines = [];
-let appleSound, dieSound, mineSound;
-let bgMusic, endMusic;
-let gameStarted = false;
-let slider, startButton;
-let appleImage, mineImage;
-let gameOver = false;
-let score = 0;
-let isGameOver = false;
-let particles = [];
 
 
-
-
-
+// ----- Setup and Main Loop -----
 
 function preload() {
   appleSound = loadSound("pop.mp3");
@@ -51,54 +60,22 @@ function preload() {
 
 function setup() {
   createCanvas(width, height);
-
-  slider = createSlider(0, 40, 0);
-  slider.position(width / 2.5, height / 2 + 80);
-
-  startButton = createButton("Start Game");
-  startButton.position(slider.x + 20, slider.y - 40);
-  startButton.mousePressed(startGame);
-
-  colorPicker = createColorPicker("ff0000");
-  colorPicker.position(slider.x + 40, slider.y + 40);
-
-  appleSound.amp(1);
-  dieSound.amp(1);
-  mineSound.amp(0.9);
-  bgMusic.amp(0.015);
-  endMusic.amp(0.3);
+  createMenu();
+  adjustVolume();
 }
+
 
 function draw() {
-
   background(255);
-
-  if (!gameStarted && !gameOver) {
-    drawStartScreen();
-    return;
-  }
-
-  if (gameOver) {
-    drawEndScreen();
-    return;
-  }
-
-  drawGrid(); 
-  if (millis() - lastMoveTime > moveInterval) { // Check if it's time to move the snake
-    moveSnake();
-    lastMoveTime = millis(); // Update last move time
-  }
-  checkCollisions();
-  drawSnake(); 
-  drawApples();
-  drawMines();
-
-  drawParticles();
+  runGame();
 }
+
+
+
 
 
 function startGame() { 
-
+  gameStarted = true;
   let numMines = slider.value();
 
   spawnApple();
@@ -107,8 +84,6 @@ function startGame() {
   colorPicker.hide();
   slider.hide();
   startButton.hide();
-  
-  gameStarted = true;
 
   bgMusic.loop();
 }
@@ -132,6 +107,8 @@ function drawGrid() {
   }
 }
 
+
+
 function drawSnake() {
 
   let snakeColor;
@@ -141,12 +118,13 @@ function drawSnake() {
     fill(snakeColor);
     rect(snake[i].x * theGrid.xSize, snake[i].y * theGrid.ySize, theGrid.xSize, theGrid.ySize);
 
-   
     if (i === 0) {
       drawEyes(snake[i].x, snake[i].y);
     }
   }
 }
+
+
 
 function drawEyes(x, y) {
   fill(205);
@@ -173,6 +151,8 @@ function drawEyes(x, y) {
   }
 }
 
+
+
 function moveSnake() {
   let newHead = {
     x: snake[0].x + direction.x,
@@ -198,11 +178,15 @@ function keyPressed() {
   }
 }
 
+
+
 function drawApples() {
   for (let i = 0; i < apples.length; i++) {
     image(appleImage, apples[i].x * theGrid.xSize, apples[i].y * theGrid.ySize, theGrid.xSize, theGrid.ySize);
   }
 }
+
+
 
 function spawnApple() {
   let apple = {
@@ -266,11 +250,14 @@ function spawnMines(numMines) {
   }
 }
 
+
+
 function drawMines() {
   for (let i = 0; i < mines.length; i++) {
     image(mineImage, mines[i].x * theGrid.xSize, mines[i].y * theGrid.ySize, theGrid.xSize, theGrid.ySize);
   }
 }
+
 
 
 function drawStartScreen(){
@@ -285,6 +272,8 @@ function drawStartScreen(){
   text("SNAKE", width / 2, height / 2 - 50);
   return;
 }
+
+
 
 function drawEndScreen(){
   clear();
@@ -305,6 +294,7 @@ function drawEndScreen(){
 
   return;
 }
+
 
 
 class Particle {
@@ -331,11 +321,14 @@ class Particle {
 }
 
 
+
 function spawnParticles(x, y, color) {
   for (let i = 0; i < 10; i++) {
     particles.push(new Particle(x * theGrid.xSize + theGrid.xSize / 2, y * theGrid.ySize + theGrid.ySize / 2, color));
   }
 }
+
+
 
 function drawParticles() {
   for (let i = particles.length - 1; i >= 0; i--) {
@@ -344,5 +337,52 @@ function drawParticles() {
     if (particles[i].isDead()) {
       particles.splice(i, 1);
     }
+  }
+}
+
+
+
+function createMenu(){
+  slider = createSlider(0, 40, 0);
+  slider.position(width / 2.5, height / 2 + 80);
+
+  startButton = createButton("Start Game");
+  startButton.position(slider.x + 20, slider.y - 40);
+  startButton.mousePressed(startGame);
+
+  colorPicker = createColorPicker("ff0000");
+  colorPicker.position(slider.x + 40, slider.y + 40);
+}
+
+function adjustVolume(){
+  appleSound.amp(1);
+  dieSound.amp(1);
+  mineSound.amp(0.9);
+  bgMusic.amp(0.015);
+  endMusic.amp(0.3);
+}
+
+
+function runGame() {
+  if (!gameStarted && !gameOver) {
+    drawStartScreen();
+  }
+
+  else if (gameOver) {
+    drawEndScreen();
+  }
+
+  else if (gameStarted) {
+    drawGrid(); 
+    if (millis() - lastMoveTime > moveInterval) { 
+      moveSnake();
+      lastMoveTime = millis(); 
+    }
+    checkCollisions();
+    drawSnake(); 
+    drawApples();
+    drawMines();
+  
+    drawParticles();
   }
 }
