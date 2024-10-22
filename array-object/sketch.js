@@ -13,7 +13,8 @@
 
 // START OF CODE
 
-// ----- Constants and Variables -----
+
+// ----- Constant and Variables -----
 
 let direction = {x: 1, y: 0};
 let width = 700;
@@ -45,6 +46,7 @@ let theGrid = {
 };
 
 
+
 // ----- Setup and Main Loop -----
 
 function preload() {
@@ -72,9 +74,11 @@ function draw() {
 
 
 
+// ----- Game Logic and Functions -----
 
 
 function startGame() { 
+  // Game Started
   gameStarted = true;
   let numMines = slider.value();
 
@@ -89,8 +93,8 @@ function startGame() {
 }
 
 
-
 function drawGrid() {
+  // Creates an alternating Grid
   let isLightGreen = true;
   for (let y = 0; y < theGrid.yAmount; y++) {
     for (let x = 0; x < theGrid.xAmount; x++){ 
@@ -108,8 +112,95 @@ function drawGrid() {
 }
 
 
+function createMenu(){
+  // Creates Interactive Inputs Accessible to User
+  slider = createSlider(0, 40, 0);
+  slider.position(width / 2.5, height / 2 + 80);
+
+  startButton = createButton("Start Game");
+  startButton.position(slider.x + 20, slider.y - 40);
+  startButton.mousePressed(startGame);
+
+  colorPicker = createColorPicker("ff0000");
+  colorPicker.position(slider.x + 40, slider.y + 40);
+}
+
+
+function adjustVolume(){
+  // Adjusts Volume of Imported Sounds and Music
+  appleSound.amp(1);
+  dieSound.amp(1);
+  mineSound.amp(0.9);
+  bgMusic.amp(0.015);
+  endMusic.amp(0.3);
+}
+
+
+function runGame() {
+  // Start Screen
+  if (!gameStarted && !gameOver) {
+    drawStartScreen();
+  }
+
+  // End Screen
+  else if (gameOver) {
+    drawEndScreen();
+  }
+
+  // Game Screen/Loop
+  else if (gameStarted) {
+    drawGrid(); 
+    if (millis() - lastMoveTime > moveInterval) { 
+      moveSnake();
+      lastMoveTime = millis(); 
+    }
+    checkCollisions();
+    drawSnake(); 
+    drawApples();
+    drawMines();
+  
+    drawParticles();
+  }
+}
+
+
+function drawStartScreen(){
+  // Start Screen Display
+  textAlign(CENTER, CENTER);
+  textSize(15);
+  fill(0);
+  text("Select Difficulty and Press Start", width / 2, height / 2 + 10);
+
+  textAlign(CENTER, CENTER);
+  textSize(50);
+  fill("green");
+  text("SNAKE", width / 2, height / 2 - 50);
+  return;
+}
+
+
+function drawEndScreen(){
+  // End Screen Display
+  clear();
+  setup();
+  background("red");
+  textAlign(CENTER, CENTER);
+  textSize(40);
+  fill("white");
+  text("GAME OVER", width / 2, height / 2 - 50);
+  text("Score: " + score, width/2, height/2);
+
+  bgMusic.stop();
+  endMusic.loop();
+
+  colorPicker.hide();
+  slider.hide();
+  startButton.hide();
+}
+
 
 function drawSnake() {
+// Draws the Snake Color and Size
 
   let snakeColor;
   snakeColor = colorPicker.color();
@@ -125,8 +216,8 @@ function drawSnake() {
 }
 
 
-
 function drawEyes(x, y) {
+// Snake Eyes for Aesthetic Appeal (Follows Direction of Snake)
   fill(205);
   let eyeSize = theGrid.xSize / 4;
   let offsetX = theGrid.xSize / 3;
@@ -152,8 +243,8 @@ function drawEyes(x, y) {
 }
 
 
-
 function moveSnake() {
+  // Moves the Head of the Snake, The body follows along with it (Adding a head and removing a tail)
   let newHead = {
     x: snake[0].x + direction.x,
     y: snake[0].y + direction.y,
@@ -164,6 +255,7 @@ function moveSnake() {
 
 
 function keyPressed() {
+  // User Controls for the Snake
   if (keyCode === UP_ARROW) {
     direction = {x: 0, y: -1};
   }
@@ -179,16 +271,8 @@ function keyPressed() {
 }
 
 
-
-function drawApples() {
-  for (let i = 0; i < apples.length; i++) {
-    image(appleImage, apples[i].x * theGrid.xSize, apples[i].y * theGrid.ySize, theGrid.xSize, theGrid.ySize);
-  }
-}
-
-
-
 function spawnApple() {
+  // Creates Apples
   let apple = {
     x: floor(random(0, theGrid.xAmount)),
     y: floor(random(0, theGrid.yAmount)),
@@ -197,49 +281,16 @@ function spawnApple() {
 }
 
 
-function checkCollisions() {
-
-  let head = snake[0];
+function drawApples() {
+  // Displays Apples
   for (let i = 0; i < apples.length; i++) {
-    if (head.x === apples[i].x && head.y === apples[i].y) {
-      apples.splice(i, 1);
-      spawnApple();
-      snake.push({});
-      appleSound.play();
-      score++;
-      spawnParticles(head.x, head.y, color(255,0,0));
-    }
-  }
-  if (head.x < 0  || head.x >= theGrid.xAmount  || head.y < 0  || head.y >= theGrid.yAmount ) {
-    isGameOver = true;
-    dieSound.play();
-  }
-
-  for (let i = 1; i < snake.length; i++){
-    if (head.x === snake[i].x && head.y === snake[i].y) {
-      isGameOver = true;
-      dieSound.play();
-    }
-  }
-
-
-  for (let i = 0; i < mines.length; i++) {
-    if (head.x === mines[i].x && head.y === mines[i].y) {
-      snake.pop();
-      mineSound.play();
-      isGameOver = true;
-    }
-  }
-
-  
-  if (isGameOver === true) {
-    gameOver = true;
-    gameStarted = false;
+    image(appleImage, apples[i].x * theGrid.xSize, apples[i].y * theGrid.ySize, theGrid.xSize, theGrid.ySize);
   }
 }
 
 
 function spawnMines(numMines) {
+  // Creates Mines
   mines = [];
   for (let i = 0; i < numMines; i++) {
     let mine = {
@@ -251,53 +302,16 @@ function spawnMines(numMines) {
 }
 
 
-
 function drawMines() {
+  // Draws Mines 
   for (let i = 0; i < mines.length; i++) {
     image(mineImage, mines[i].x * theGrid.xSize, mines[i].y * theGrid.ySize, theGrid.xSize, theGrid.ySize);
   }
 }
 
 
-
-function drawStartScreen(){
-  textAlign(CENTER, CENTER);
-  textSize(15);
-  fill(0);
-  text("Select Difficulty and Press Start", width / 2, height / 2 + 10);
-
-  textAlign(CENTER, CENTER);
-  textSize(50);
-  fill("green");
-  text("SNAKE", width / 2, height / 2 - 50);
-  return;
-}
-
-
-
-function drawEndScreen(){
-  clear();
-  setup();
-  background("red");
-  textAlign(CENTER, CENTER);
-  textSize(40);
-  fill("white");
-  text("GAME OVER", width / 2, height / 2 - 50);
-  text("Score: " + score, width/2, height/2);
-
-  bgMusic.stop();
-  endMusic.loop();
-
-  colorPicker.hide();
-  slider.hide();
-  startButton.hide();
-
-  return;
-}
-
-
-
 class Particle {
+  // Defines Behaviour and Appearance of Particles
   constructor(x, y, color) {
     this.x = x;
     this.y = y;
@@ -321,16 +335,16 @@ class Particle {
 }
 
 
-
 function spawnParticles(x, y, color) {
+  // Creates Particles at Given Location
   for (let i = 0; i < 10; i++) {
     particles.push(new Particle(x * theGrid.xSize + theGrid.xSize / 2, y * theGrid.ySize + theGrid.ySize / 2, color));
   }
 }
 
 
-
 function drawParticles() {
+  // Displays Particles
   for (let i = particles.length - 1; i >= 0; i--) {
     particles[i].update();
     particles[i].display();
@@ -342,47 +356,50 @@ function drawParticles() {
 
 
 
-function createMenu(){
-  slider = createSlider(0, 40, 0);
-  slider.position(width / 2.5, height / 2 + 80);
+// ----- Collision Detections -----
 
-  startButton = createButton("Start Game");
-  startButton.position(slider.x + 20, slider.y - 40);
-  startButton.mousePressed(startGame);
+function checkCollisions() {
 
-  colorPicker = createColorPicker("ff0000");
-  colorPicker.position(slider.x + 40, slider.y + 40);
-}
+  let head = snake[0];
 
-function adjustVolume(){
-  appleSound.amp(1);
-  dieSound.amp(1);
-  mineSound.amp(0.9);
-  bgMusic.amp(0.015);
-  endMusic.amp(0.3);
-}
-
-
-function runGame() {
-  if (!gameStarted && !gameOver) {
-    drawStartScreen();
-  }
-
-  else if (gameOver) {
-    drawEndScreen();
-  }
-
-  else if (gameStarted) {
-    drawGrid(); 
-    if (millis() - lastMoveTime > moveInterval) { 
-      moveSnake();
-      lastMoveTime = millis(); 
+  // Apple-Snake Collisions
+  for (let i = 0; i < apples.length; i++) {
+    if (head.x === apples[i].x && head.y === apples[i].y) {
+      apples.splice(i, 1);
+      spawnApple();
+      snake.push({});
+      appleSound.play();
+      score++;
+      spawnParticles(head.x, head.y, color(255,0,0));
     }
-    checkCollisions();
-    drawSnake(); 
-    drawApples();
-    drawMines();
-  
-    drawParticles();
+  }
+
+  // Snake-Wall Collisions
+  if (head.x < 0  || head.x >= theGrid.xAmount  || head.y < 0  || head.y >= theGrid.yAmount ) {
+    isGameOver = true;
+    dieSound.play();
+  }
+
+  // Snake-Snake Collisions
+  for (let i = 1; i < snake.length; i++){
+    if (head.x === snake[i].x && head.y === snake[i].y) {
+      isGameOver = true;
+      dieSound.play();
+    }
+  }
+
+  // Snake-Mines Collisions
+  for (let i = 0; i < mines.length; i++) {
+    if (head.x === mines[i].x && head.y === mines[i].y) {
+      snake.pop();
+      mineSound.play();
+      isGameOver = true;
+    }
+  }
+
+  // Game Over
+  if (isGameOver === true) {
+    gameOver = true;
+    gameStarted = false;
   }
 }
