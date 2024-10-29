@@ -13,6 +13,16 @@ let theGrid = {
   yAmount: 5,
   size: 110
 };
+let gem;
+let bomb;
+let tileTexture;
+
+
+function preload() {
+  gem = loadImage("");
+  bomb = loadImage("");
+  tileTexture = loadImage("");
+}
 
 
 function setup() {
