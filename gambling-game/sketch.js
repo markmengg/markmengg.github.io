@@ -11,17 +11,18 @@ let money = 5000;
 let theGrid = {
   xAmount: 5,
   yAmount: 5,
-  size: 110
+  cellSize: 110
 };
 let gem;
 let bomb;
 let tileTexture;
+let isGameStarted;
 
 
 function preload() {
-  gem = loadImage("");
-  bomb = loadImage("");
-  tileTexture = loadImage("");
+  gem = loadImage("diamond.png");
+  bomb = loadImage("bomb.png");
+  tileTexture = loadImage("tileTexture.png");
 }
 
 
@@ -31,19 +32,36 @@ function setup() {
 
 function draw() {
   background(220);
+  startScreen();
   drawGrid();
 }
 
 
 function startScreen() {
-  
+  textAlign(CENTER, CENTER);
+  textSize(50);
+  fill("blue");
+  text("MINES GAMBLING", width / 2, height / 2 - 50);
+
+  startButton = createButton("Start Game");
+  startButton.position(width/2, height/2);
+  startButton.mousePressed(isGameStarted);
+
 }
 
+
+function startGame() {
+  if (isGameStarted === true) {
+    drawGrid();
+    startButton.hide();
+
+  }
+}
 
 function drawGrid() {
   for (let y = 0; y < theGrid.yAmount; y++) {
     for (let x = 0; x < theGrid.xAmount; x++){ 
-      rect(x*theGrid.size, y*theGrid.size, theGrid.size, theGrid.size);
+      image(tileTexture, x * theGrid.cellSize, y * theGrid.cellSize, theGrid.cellSize, theGrid.cellSize);
     }
   }
 }
