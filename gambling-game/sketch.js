@@ -16,7 +16,7 @@ let theGrid = {
 let gem;
 let bomb;
 let tileTexture;
-let isGameStarted;
+let isGameStarted = false;
 
 
 function preload() {
@@ -32,8 +32,12 @@ function setup() {
 
 function draw() {
   background(220);
-  startScreen();
-  drawGrid();
+  if (!isGameStarted) {
+    startScreen();
+  }
+  else {
+    drawGrid();
+  }
 }
 
 
@@ -44,19 +48,17 @@ function startScreen() {
   text("MINES GAMBLING", width / 2, height / 2 - 50);
 
   startButton = createButton("Start Game");
-  startButton.position(width/2, height/2);
-  startButton.mousePressed(isGameStarted);
+  startButton.position(width / 2 - 50, height / 2);
+  startButton.mousePressed(startGame);
 
 }
 
 
 function startGame() {
-  if (isGameStarted === true) {
-    drawGrid();
-    startButton.hide();
-
-  }
+  startButton.hide();
+  isGameStarted = true;
 }
+
 
 function drawGrid() {
   for (let y = 0; y < theGrid.yAmount; y++) {
