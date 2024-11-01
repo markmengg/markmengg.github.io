@@ -17,6 +17,8 @@ let gem;
 let bomb;
 let tileTexture;
 let isGameStarted = false;
+let minimumBet = 1; 
+let topBet = money;
 
 
 function preload() {
@@ -51,6 +53,9 @@ function startScreen() {
   startButton.position(width / 2 - 50, height / 2);
   startButton.mousePressed(startGame);
 
+
+
+
 }
 
 
@@ -61,6 +66,10 @@ function startGame() {
 
 
 function drawGrid() {
+
+  slider = createSlider(minimumBet, topBet, minimumBet);
+  slider.position(width / 2.5, height / 2 + 80);
+
   for (let y = 0; y < theGrid.yAmount; y++) {
     for (let x = 0; x < theGrid.xAmount; x++){ 
       image(tileTexture, x * theGrid.cellSize, y * theGrid.cellSize, theGrid.cellSize, theGrid.cellSize);
