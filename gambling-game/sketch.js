@@ -14,11 +14,12 @@ let theGrid = {
   cellSize: 110
 };
 let gem;
-let bomb;
+let bombs = [];
 let tileTexture;
 let isGameStarted = false;
 let minimumBet = 1; 
 let topBet = money;
+let currentBet = minimumBet;
 
 
 function preload() {
@@ -37,7 +38,7 @@ function draw() {
   if (!isGameStarted) {
     startScreen();
   }
-  else {
+  if (isGameStarted) {
     drawGrid();
   }
 }
@@ -49,14 +50,14 @@ function startScreen() {
   fill("blue");
   text("MINES GAMBLING", width / 2, height / 2 - 50);
 
-  startButton = createButton("Start Game");
+  let startButton = createButton("Start Game");
   startButton.position(width / 2 - 50, height / 2);
-  startButton.mousePressed(startGame);
-
-
-
-
+  startButton.mousePressed(() => {
+    startButton.hide();
+    isGameStarted = true;
+  });
 }
+
 
 
 function startGame() {
@@ -66,13 +67,31 @@ function startGame() {
 
 
 function drawGrid() {
-
-  slider = createSlider(minimumBet, topBet, minimumBet);
-  slider.position(width / 2.5, height / 2 + 80);
+  if (!slider){
+    slider = createSlider(minimumBet, Math.min(money, 5000), minimumBet, 1);
+    slider.position(width / 2.5, height / 2 + 80);
+    slider.input(() => currentBet = slider.value());
+  }
 
   for (let y = 0; y < theGrid.yAmount; y++) {
     for (let x = 0; x < theGrid.xAmount; x++){ 
       image(tileTexture, x * theGrid.cellSize, y * theGrid.cellSize, theGrid.cellSize, theGrid.cellSize);
     }
   }
+}
+
+
+function displayStats() {
+  textSize(24);
+  fill(0);
+  textAlign(LEFT);
+  text("Money: $" + money, 10, 30);
+  text("Bet: $" + currentBet, 10, 60);
+  text("Multiplier:" );
+}
+
+function placeBombs() {
+
+
+
 }
