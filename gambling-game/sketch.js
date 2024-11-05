@@ -24,11 +24,16 @@ let startButton;
 let slider;
 let multiplier = 1;
 let chosenCells = [];
+let bombAmount;
+let font;
+
+
 
 function preload() {
   gem = loadImage("diamond.png");
   bomb = loadImage("bomb.png");
   tileTexture = loadImage("tileTexture.png");
+  font = loadFont("font.otf");
 }
 
 
@@ -52,7 +57,7 @@ function draw() {
 function startScreen() {
   textAlign(CENTER, CENTER);
   textSize(50);
-  fill("blue");
+  fill("black");
   text("MINES GAMBLING", width / 2, height / 2 - 50);
   if (!startButton) {
     startButton = createButton("Start Game");
@@ -75,7 +80,7 @@ function startGame() {
 function drawGrid() {
   if (!slider){
     slider = createSlider(minimumBet, Math.min(money, 5000), minimumBet, 1);
-    slider.position(1000, 50);
+    slider.position(900, 50);
     slider.input(() => currentBet = slider.value());
   }
 
@@ -92,6 +97,10 @@ function drawGrid() {
 }
 
 
+function chooseRisk() {
+  
+}
+
 function displayStats() {
   textSize(24);
   fill(0);
@@ -103,7 +112,7 @@ function displayStats() {
 
 function placeBombs() {
   bombs = [];
-  while (bombs.length < 5) {  // Adjust number of bombs based on difficulty
+  while (bombs.length < bombAmount) { 
     let x = floor(random(theGrid.xAmount));
     let y = floor(random(theGrid.yAmount));
     
@@ -114,37 +123,41 @@ function placeBombs() {
 }
 
 function mousePressed() {
-  if (!isGameStarted) return;
+  if (isGameStarted) {
 
-  let xIndex = floor(mouseX / theGrid.cellSize);
-  let yIndex = floor(mouseY / theGrid.cellSize);
-
-  if (xIndex < theGrid.xAmount && yIndex < theGrid.yAmount) {
-    if (chosenCells.some(cell => cell.x === xIndex && cell.y === yIndex)) {
-      console.log("Cell already chosen.");
-      return;
-    }
-
-    let bombHit = bombs.some(b => b.x === xIndex && b.y === yIndex);
-    if (bombHit) {
-      console.log("Bomb hit! Game over.");
-      money -= currentBet;
-      resetGame();
-    } else {
-      multiplier += 0.03;
-      money += currentBet * multiplier;
-      chosenCells.push({ x: xIndex, y: yIndex });
-      console.log(`Gem found! Multiplier: ${multiplier}`);
+    let xIndex = floor(mouseX / theGrid.cellSize);
+    let yIndex = floor(mouseY / theGrid.cellSize);
+  
+    if (xIndex < theGrid.xAmount && yIndex < theGrid.yAmount) {
+      if (chosenCells.some(cell => cell.x === xIndex && cell.y === yIndex)) {
+        console.log("Cell already chosen.");
+        return;
+      }
+  
+      let bombHit = bombs.some(b => b.x === xIndex && b.y === yIndex);
+      if (bombHit) {
+        console.log("Bomb hit! Game over.");
+        money -= currentBet;
+        resetGame();
+      } 
+      else {
+        multiplier += 0.03;
+        money += currentBet * multiplier;
+        chosenCells.push({ x: xIndex, y: yIndex });
+        console.log(`Gem found! Multiplier: ${multiplier}`);
+      };
     }
   }
 }
 
 function resetGame() {
   isGameStarted = false;
-  if (startButton) startButton.show();
-  clearSlidersAndButtons();
-  multiplier = 1;
-  chosenCells = [];
+  if (startButton) {
+    startButton.show();
+    clearSlidersAndButtons();
+    multiplier = 1;
+    chosenCells = [];
+  }
 }
 
 function clearSlidersAndButtons() {
