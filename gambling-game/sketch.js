@@ -1,11 +1,14 @@
-// Gambling Games
+// Gambling Game
 // Mark Meng
 // October 28th, 2024
-// Ideas: stake mines, currency feature, multiplier based on mines, good animations and particle effects. 5x5 grid
+// multiplier based on amount of mines (24 bombs = 25x, 1 bomb = 1.01x), good animations and particle effects, create re-bet and cash out option
+// fix bomb appearance, when i click on a bomb it just immediately ends game instead of displaying bomb and showing "bet ended", make sure it deducts original amount of money
+// 
+
 // Extra for Experts:
 // - describe what you did to take this project "above and beyond"
 
-let width = 1100;
+let width = 870;
 let height = 550;
 let money = 5000;
 let theGrid = {
@@ -33,7 +36,7 @@ function preload() {
   gem = loadImage("diamond.png");
   bomb = loadImage("bomb.png");
   tileTexture = loadImage("tileTexture.png");
-  font = loadFont("font.otf");
+  font = loadFont("font.ttf");
 }
 
 
@@ -43,7 +46,7 @@ function setup() {
 }
 
 function draw() {
-  background(220);
+  background("#406274");
   if (!isGameStarted) {
     startScreen();
   }
@@ -56,8 +59,9 @@ function draw() {
 
 function startScreen() {
   textAlign(CENTER, CENTER);
-  textSize(50);
-  fill("black");
+  textSize(75);
+  fill("white");
+  textFont(font);
   text("MINES GAMBLING", width / 2, height / 2 - 50);
   if (!startButton) {
     startButton = createButton("Start Game");
@@ -73,6 +77,7 @@ function startGame() {
   isGameStarted = true;
   multiplier = 1;
   chosenCells = [];
+  bombAmount = 7;
   placeBombs();
 }
 
@@ -80,15 +85,21 @@ function startGame() {
 function drawGrid() {
   if (!slider){
     slider = createSlider(minimumBet, Math.min(money, 5000), minimumBet, 1);
-    slider.position(900, 50);
+    slider.position(625, 70);
     slider.input(() => currentBet = slider.value());
   }
-
+  
   for (let y = 0; y < theGrid.yAmount; y++) {
-    for (let x = 0; x < theGrid.xAmount; x++){ 
+    for (let x = 0; x < theGrid.xAmount; x++) {
       if (chosenCells.some(cell => cell.x === x && cell.y === y)) {
-        image(gem, x * theGrid.cellSize, y * theGrid.cellSize, theGrid.cellSize, theGrid.cellSize);
-      } 
+        let bombHit = bombs.some(b => b.x === x && b.y === y);
+        if (bombHit) {
+          image(bomb, x * theGrid.cellSize, y * theGrid.cellSize, theGrid.cellSize, theGrid.cellSize);
+        }
+        else {
+          image(gem, x * theGrid.cellSize, y * theGrid.cellSize, theGrid.cellSize, theGrid.cellSize);
+        }
+      }
       else {
         image(tileTexture, x * theGrid.cellSize, y * theGrid.cellSize, theGrid.cellSize, theGrid.cellSize);
       }
@@ -103,11 +114,11 @@ function chooseRisk() {
 
 function displayStats() {
   textSize(24);
-  fill(0);
+  fill("white");
   textAlign(LEFT);
-  text("Money: $" + money, 900, 100);
-  text("Bet: $" + currentBet, 900, 130);
-  text("Multiplier: x" + multiplier.toFixed(2), 900, 160);
+  text("Money: $" + money, 600, 120);
+  text("Bet: $" + currentBet, 600, 150);
+  text("Multiplier: x" + multiplier.toFixed(2), 600, 180);
 }
 
 function placeBombs() {
@@ -124,28 +135,25 @@ function placeBombs() {
 
 function mousePressed() {
   if (isGameStarted) {
-
     let xIndex = floor(mouseX / theGrid.cellSize);
     let yIndex = floor(mouseY / theGrid.cellSize);
   
     if (xIndex < theGrid.xAmount && yIndex < theGrid.yAmount) {
       if (chosenCells.some(cell => cell.x === xIndex && cell.y === yIndex)) {
-        console.log("Cell already chosen.");
         return;
       }
   
       let bombHit = bombs.some(b => b.x === xIndex && b.y === yIndex);
       if (bombHit) {
-        console.log("Bomb hit! Game over.");
         money -= currentBet;
-        resetGame();
-      } 
+        chosenCells.push({ x: xIndex, y: yIndex });
+        displayLoss();
+      }
       else {
         multiplier += 0.03;
         money += currentBet * multiplier;
         chosenCells.push({ x: xIndex, y: yIndex });
-        console.log(`Gem found! Multiplier: ${multiplier}`);
-      };
+      }
     }
   }
 }
@@ -154,16 +162,14 @@ function resetGame() {
   isGameStarted = false;
   if (startButton) {
     startButton.show();
-    clearSlidersAndButtons();
     multiplier = 1;
     chosenCells = [];
   }
 }
 
-function clearSlidersAndButtons() {
-  // Clear the sliders and end bet button
-  const sliders = selectAll('input[type="range"]');
-  sliders.forEach(slider => slider.remove());
-  const buttons = selectAll('button');
-  buttons.forEach(button => button.remove());
+
+function displayLoss() {
+  clear();
+  setup();
+  text("Bomb Hit", width / 2, height / 2 - 50);
 }
