@@ -2,7 +2,7 @@
 // Mark Meng
 // October 28th, 2024
 // multiplier based on amount of mines (24 bombs = 25x, 1 bomb = 1.01x), good animations and particle effects, create re-bet and cash out option
-// fix bomb appearance, when i click on a bomb it just immediately ends game instead of displaying bomb and showing "bet ended", make sure it deducts original amount of money
+// fix bomb appearance, when i click on a bomb it just immediately ends game instead of displaying bomb and showing "bet ended", make sure it deducts original amount of money + gained money
 // 
 
 // Extra for Experts:
@@ -24,7 +24,8 @@ let minimumBet = 1;
 let topBet = money;
 let currentBet = minimumBet;
 let startButton;
-let slider;
+let betSlider;
+let bombSlider;
 let multiplier = 1;
 let chosenCells = [];
 let bombAmount;
@@ -77,16 +78,22 @@ function startGame() {
   isGameStarted = true;
   multiplier = 1;
   chosenCells = [];
-  bombAmount = 7;
+  bombAmount = 10;
   placeBombs();
 }
 
 
 function drawGrid() {
-  if (!slider){
-    slider = createSlider(minimumBet, Math.min(money, 5000), minimumBet, 1);
-    slider.position(625, 70);
-    slider.input(() => currentBet = slider.value());
+  if (!betSlider){
+    betSlider = createSlider(minimumBet, Math.min(money, 5000), minimumBet, 1);
+    betSlider.position(625, 70);
+    betSlider.input(() => currentBet = betSlider.value());
+  }
+
+  if (!bombSlider){
+    bombSlider = createSlider(1, 24, 1, 1);
+    bombSlider.position(625, 500);
+    bombSlider.input(() => bombAmount = bombSlider.value());
   }
   
   for (let y = 0; y < theGrid.yAmount; y++) {
