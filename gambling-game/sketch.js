@@ -30,6 +30,8 @@ let multiplier = 1;
 let chosenCells = [];
 let bombAmount;
 let font;
+let bgMusic;
+let gemSound, bombSound;
 
 
 
@@ -38,6 +40,9 @@ function preload() {
   bomb = loadImage("bomb.png");
   tileTexture = loadImage("tileTexture.png");
   font = loadFont("font.ttf");
+  bgMusic = loadSound("BackgroundMusic.mp4");
+  gemSound = loadSound("coin.wav");
+  bombSound = loadSound("bomb.wav");
 }
 
 
@@ -74,6 +79,7 @@ function startScreen() {
 
 
 function startGame() {
+  bgMusic.loop();
   startButton.hide();
   isGameStarted = true;
   multiplier = 1;
@@ -102,9 +108,11 @@ function drawGrid() {
         let bombHit = bombs.some(b => b.x === x && b.y === y);
         if (bombHit) {
           image(bomb, x * theGrid.cellSize, y * theGrid.cellSize, theGrid.cellSize, theGrid.cellSize);
+          bombSound.play();
         }
         else {
           image(gem, x * theGrid.cellSize, y * theGrid.cellSize, theGrid.cellSize, theGrid.cellSize);
+          gemSound.play();
         }
       }
       else {
@@ -114,10 +122,6 @@ function drawGrid() {
   }
 }
 
-
-function chooseRisk() {
-  
-}
 
 function displayStats() {
   textSize(24);
