@@ -28,10 +28,17 @@ let betSlider;
 let bombSlider;
 let multiplier = 1;
 let chosenCells = [];
-let bombAmount;
+let bombAmount = 1;
 let font;
 let bgMusic;
 let gemSound, bombSound;
+let isGameOver = false;
+let hitBombCell = null;
+let totalGained = 0;
+let cashOutButton;
+let lossScreenTimeout = null;
+let bombDisplayTimeout = null;
+
 
 
 
@@ -40,7 +47,7 @@ function preload() {
   bomb = loadImage("bomb.png");
   tileTexture = loadImage("tileTexture.png");
   font = loadFont("font.ttf");
-  bgMusic = loadSound("BackgroundMusic.mp4");
+  bgMusic = loadSound("BackgroundMusic.mp3");
   gemSound = loadSound("coin.wav");
   bombSound = loadSound("bomb.wav");
 }
@@ -48,6 +55,7 @@ function preload() {
 
 function setup() {
   createCanvas(width, height);
+  money = isNaN(money) ? 5000 : money;
   startScreen();
 }
 
@@ -84,43 +92,49 @@ function startGame() {
   isGameStarted = true;
   multiplier = 1;
   chosenCells = [];
-  bombAmount = 10;
+  bombAmount = bombSlider.value();
+  totalGained = 0;
+  multiplier = calculateMultiplier(bombAmount);
   placeBombs();
+  createCashOutButton();
 }
 
 
 function drawGrid() {
-  if (!betSlider){
-    betSlider = createSlider(minimumBet, Math.min(money, 5000), minimumBet, 1);
+  if (!betSlider) {
+    betSlider = createSlider(minimumBet, Math.min(money || 5000, 5000), minimumBet, 1);
     betSlider.position(625, 70);
     betSlider.input(() => currentBet = betSlider.value());
   }
 
-  if (!bombSlider){
+  if (!bombSlider) {
     bombSlider = createSlider(1, 24, 1, 1);
     bombSlider.position(625, 500);
-    bombSlider.input(() => bombAmount = bombSlider.value());
+    bombSlider.input(() => {
+      bombAmount = bombSlider.value();
+      multiplier = calculateMultiplier(bombAmount);
+      placeBombs();
+    });
   }
-  
+
   for (let y = 0; y < theGrid.yAmount; y++) {
     for (let x = 0; x < theGrid.xAmount; x++) {
-      if (chosenCells.some(cell => cell.x === x && cell.y === y)) {
+      if (chosenCells.some(cell => cell.x === x && cell.y === y) || (hitBombCell && hitBombCell.x === x && hitBombCell.y === y)) {
         let bombHit = bombs.some(b => b.x === x && b.y === y);
-        if (bombHit) {
+        if (bombHit || (hitBombCell && hitBombCell.x === x && hitBombCell.y === y)) {
           image(bomb, x * theGrid.cellSize, y * theGrid.cellSize, theGrid.cellSize, theGrid.cellSize);
           bombSound.play();
-        }
-        else {
+        } else {
           image(gem, x * theGrid.cellSize, y * theGrid.cellSize, theGrid.cellSize, theGrid.cellSize);
           gemSound.play();
         }
-      }
-      else {
+      } else {
         image(tileTexture, x * theGrid.cellSize, y * theGrid.cellSize, theGrid.cellSize, theGrid.cellSize);
       }
     }
   }
 }
+
 
 
 function displayStats() {
@@ -145,24 +159,27 @@ function placeBombs() {
 }
 
 function mousePressed() {
-  if (isGameStarted) {
+  if (isGameStarted && !isGameOver) {
     let xIndex = floor(mouseX / theGrid.cellSize);
     let yIndex = floor(mouseY / theGrid.cellSize);
-  
+
     if (xIndex < theGrid.xAmount && yIndex < theGrid.yAmount) {
       if (chosenCells.some(cell => cell.x === xIndex && cell.y === yIndex)) {
         return;
       }
-  
+
       let bombHit = bombs.some(b => b.x === xIndex && b.y === yIndex);
       if (bombHit) {
-        money -= currentBet;
-        chosenCells.push({ x: xIndex, y: yIndex });
+        money -= (currentBet + totalGained);
+        totalGained = 0;
+        hitBombCell = { x: xIndex, y: yIndex };
         displayLoss();
-      }
+      } 
       else {
         multiplier += 0.03;
-        money += currentBet * multiplier;
+        let gainedAmount = currentBet * multiplier;
+        totalGained += gainedAmount;
+        money += gainedAmount;
         chosenCells.push({ x: xIndex, y: yIndex });
       }
     }
@@ -170,17 +187,62 @@ function mousePressed() {
 }
 
 function resetGame() {
-  isGameStarted = false;
-  if (startButton) {
-    startButton.show();
-    multiplier = 1;
-    chosenCells = [];
-  }
+  isGameStarted = true;
+  isGameOver = false;
+  multiplier = 1;
+  chosenCells = [];
+  hitBombCell = null;
+  currentBet = minimumBet;
+  totalGained = 0;
+  placeBombs();
+
+  if (cashOutButton) cashOutButton.show();
 }
 
 
 function displayLoss() {
-  clear();
-  setup();
-  text("Bomb Hit", width / 2, height / 2 - 50);
+  background("#ff3333");
+  fill("white");
+  textAlign(CENTER);
+  textSize(50);
+  text("Bet Ended!", width / 2, height / 2);
+
+  if (hitBombCell) {
+    image(bomb, hitBombCell.x * theGrid.cellSize, hitBombCell.y * theGrid.cellSize, theGrid.cellSize, theGrid.cellSize);
+    bombSound.play();
+  }
+
+  if (cashOutButton) cashOutButton.hide();
+
+  if (bombDisplayTimeout) clearTimeout(bombDisplayTimeout);
+  bombDisplayTimeout = setTimeout(() => {
+    hitBombCell = null; 
+  }, 1000);
+
+  if (lossScreenTimeout) clearTimeout(lossScreenTimeout);
+  lossScreenTimeout = setTimeout(() => {
+    resetGame();
+  }, 2000);
+}
+
+
+
+function calculateMultiplier(bombCount) {
+  return bombCount === 1 ? 1.01 : 1 + (bombCount / 24) * 24;
+}
+
+function cashOut() {
+  money += totalGained;
+  totalGained = 0;
+  resetGame();
+}
+
+function createCashOutButton() {
+  if (!cashOutButton) {
+    cashOutButton = createButton("Cash Out");
+    cashOutButton.position(625, 200);
+    cashOutButton.mousePressed(cashOut);
+  } else {
+    cashOutButton.show();
+  }
 }
