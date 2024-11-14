@@ -1,9 +1,7 @@
 // Gambling Game
 // Mark Meng
 // October 28th, 2024
-// multiplier based on amount of mines (24 bombs = 25x, 1 bomb = 1.01x), good animations and particle effects, create re-bet and cash out option
-// fix bomb appearance, when i click on a bomb it just immediately ends game instead of displaying bomb and showing "bet ended", make sure it deducts original amount of money + gained money
-// 
+
 
 // Extra for Experts:
 // - describe what you did to take this project "above and beyond"
@@ -21,24 +19,20 @@ let bombs = [];
 let tileTexture;
 
 let minimumBet = 1; 
+let bombAmount = 1;
 let topBet = money;
 let currentBet = minimumBet;
-let startButton;
-let submitBetButton;
-let betSlider;
-let bombSlider;
-let multiplier = 1.01;
+let startButton, submitBetButton, cashOutButton;
+let betSlider, bombSlider;
 let chosenCells = [];
-let bombAmount = 1;
 let font;
 let bgMusic;
 let gemSound, bombSound;
 
 let hitBombCell;
-let totalGained = 0;
-let cashOutButton;
 let lossScreenTimeout;
 let bombDisplayTimeout;
+let doubleClickTimeout;
 
 let gameState = "start";
 
@@ -58,8 +52,6 @@ function preload() {
 
 function setup() {
   createCanvas(width, height);
-  money = isNaN(money) ? 5000 : money;
-  startScreen();
 }
 
 function draw() {
@@ -73,6 +65,9 @@ function draw() {
   else if (gameState === "bet") {
     betScreen(); 
   }
+  else if (gameState === "loss") {
+    displayLoss();
+  }
 }
 
 
@@ -84,32 +79,42 @@ function startScreen() {
   text("MINES GAMBLING", width / 2, height / 2 - 50);
   if (!startButton) {
     startButton = createButton("Start Game");
-    startButton.position(width / 2 - 50, height / 2);
-    startButton.mousePressed(startGame);
+    startButton.position(width / 2 - startButton.width/2, height / 2 - startButton.width/2 + 100);
+
+    startButton.mousePressed(() => {
+      bgMusic.loop();
+      bgMusic.setVolume(0.25); 
+
+      startButton.remove();
+  
+      resetGame();
+    });
   }
 }
 
 
 
-function startGame() {
-  bgMusic.loop();
-  startButton.hide();
-  
-  resetGame();
-}
-
 function resetGame() {
   gameState = "bet"; 
-  multiplier = 1;
   chosenCells = [];
   hitBombCell = null;
   currentBet = minimumBet;
-  totalGained = 0;
+
+  if (cashOutButton) {
+    cashOutButton.hide();
+  }
+
+  // remove so the max bet can be updated
+  if (betSlider)
+    betSlider.remove(); 
+  betSlider = null;
 }
 
 
 
 function betScreen() {
+  money = Math.round(money * 100) / 100; // Round to 2 decimal places
+
   if(betSlider) {
     betSlider.show();
   }
@@ -119,7 +124,7 @@ function betScreen() {
 
   // Put sliders for betting and bombs
   if (!betSlider) {
-    betSlider = createSlider(minimumBet, Math.min(money || 5000, 5000), minimumBet, 1);
+    betSlider = createSlider(minimumBet, money, minimumBet, 1);
     betSlider.position(width/2 - 65, height/2 - 20);
     betSlider.input(() => {
       currentBet = betSlider.value();
@@ -132,10 +137,7 @@ function betScreen() {
     bombSlider.position(width/2 - 65, height/2 + 190);
     bombSlider.input(() => {
       bombAmount = bombSlider.value();
-      multiplier = calculateMultiplier(bombAmount);
       placeBombs();
-
-      console.log(bombAmount);
     });
   }
 
@@ -144,9 +146,17 @@ function betScreen() {
   }
   if (!submitBetButton) {
     submitBetButton = createButton("Submit Bet");
-    submitBetButton.position(width/2 - 40, height/2 + 5);
+    submitBetButton.position(width/2 - submitBetButton.width / 2, height/2 - submitBetButton.height / 2 + 30);
+
     submitBetButton.mousePressed(() => {
       gameState = "game";
+      doubleClickTimeout = setTimeout(() => {
+        // Prevent the submit bet button from being pressed from the bet screen
+        clearTimeout(doubleClickTimeout);
+        doubleClickTimeout = null;
+      }, 300);
+      
+
       bombSlider.hide();
       betSlider.hide();
       submitBetButton.hide();
@@ -155,8 +165,6 @@ function betScreen() {
 
       placeBombs();
     });
-
-    return; // Return as we don't need to see the stats
   }
 
   displayStats();
@@ -166,12 +174,22 @@ function betScreen() {
 
 
 function displayStats() {
-  textSize(35);
-  fill("white");
-  textAlign(CENTER);
-  text("Money: $" + money, width/2, height/2 - 230);
-  text("Bet: $" + currentBet, width/2, height/2 - 50);
-  text("Multiplier: x" + multiplier.toFixed(2), width/2, height/2 + 230);
+  if (gameState === "bet") {
+    textSize(35);
+    fill("white");
+    textAlign(CENTER);
+    text("Money: $" + money, width/2, height/2 - 230);
+    text("Bet: $" + currentBet, width/2, height/2 - 50);
+    text("Multiplier: x" + (calculatePayoutMultiplier(theGrid.xAmount * theGrid.yAmount, bombAmount, 1)).toFixed(2), width/2, height/2 + 230);
+  }
+  else if (gameState === "game") {
+    textSize(35);
+    fill("white");
+    textAlign(CENTER);
+    
+    text("Bet: $" + currentBet, width - 80, 30);
+    text("Multiplier: x" + (calculatePayoutMultiplier(theGrid.xAmount * theGrid.yAmount, bombAmount, chosenCells.length)).toFixed(2), width - 150, height - 30);
+  }
 }
 
 function placeBombs() {
@@ -188,17 +206,17 @@ function placeBombs() {
 
 
 function drawGrid() {
+  if (!bombDisplayTimeout) createCashOutButton();
+
   for (let y = 0; y < theGrid.yAmount; y++) {
     for (let x = 0; x < theGrid.xAmount; x++) {
       if (chosenCells.some(cell => cell.x === x && cell.y === y) || hitBombCell && hitBombCell.x === x && hitBombCell.y === y) {
         let bombHit = bombs.some(b => b.x === x && b.y === y);
         if (bombHit || hitBombCell && hitBombCell.x === x && hitBombCell.y === y) {
           image(bomb, x * theGrid.cellSize, y * theGrid.cellSize, theGrid.cellSize, theGrid.cellSize);
-          bombSound.play();
         }
         else {
           image(gem, x * theGrid.cellSize, y * theGrid.cellSize, theGrid.cellSize, theGrid.cellSize);
-          gemSound.play();
         }
       }
       else {
@@ -206,10 +224,12 @@ function drawGrid() {
       }
     }
   }
+
+  displayStats();
 }
 
 function mousePressed() {
-  if (gameState === "game") {
+  if (gameState === "game" && !doubleClickTimeout) {
     let xIndex = floor(mouseX / theGrid.cellSize);
     let yIndex = floor(mouseY / theGrid.cellSize);
 
@@ -220,16 +240,24 @@ function mousePressed() {
 
       let bombHit = bombs.some(b => b.x === xIndex && b.y === yIndex);
       if (bombHit) {
-        money -= currentBet + totalGained;
-        totalGained = 0;
         hitBombCell = { x: xIndex, y: yIndex };
-        displayLoss();
+
+        if (!bombDisplayTimeout) {
+          bombDisplayTimeout = setTimeout(() => {
+            bombDisplayTimeout = null;
+            gameState = "loss";
+          }, 2000);
+        }
+    
+        bombSound.play();
+        
+        cashOutButton.hide();
       } 
       else {
-        multiplier += 0.03;
-        let gainedAmount = currentBet * multiplier;
-        totalGained += gainedAmount;
+        if(bombDisplayTimeout) return; // Don't allow player to click on other cells after hitting a bomb
+
         chosenCells.push({ x: xIndex, y: yIndex });
+        gemSound.play();
       }
     }
   }
@@ -245,50 +273,60 @@ function displayLoss() {
   textSize(50);
   text("Bet Ended!", width / 2, height / 2);
 
-  if (hitBombCell) {
-    image(bomb, hitBombCell.x * theGrid.cellSize, hitBombCell.y * theGrid.cellSize, theGrid.cellSize, theGrid.cellSize);
-    bombSound.play();
-  }
 
   if (cashOutButton) {
     cashOutButton.hide();
   }
 
-  if (bombDisplayTimeout) {
-    clearTimeout(bombDisplayTimeout);
+  if (!lossScreenTimeout) {
+    lossScreenTimeout = setTimeout(() => {
+      hitBombCell = null; 
+      lossScreenTimeout = null;
+      resetGame();
+    }, 3000);  
   }
-  bombDisplayTimeout = setTimeout(() => {
-    hitBombCell = null; 
-  }, 500);
-
-  if (lossScreenTimeout) {
-    clearTimeout(lossScreenTimeout);
-  }
-  lossScreenTimeout = setTimeout(() => {
-    resetGame();
-  }, 1000);
+  
 }
 
-
-
-function calculateMultiplier(bombCount) {
-  return bombCount === 1 ? 1.01 : 1 + bombCount / 24 * 24;
-}
 
 function cashOut() {
-  money += currentBet;
-  money += totalGained;
-  totalGained = 0;
+  money += currentBet * calculatePayoutMultiplier(theGrid.xAmount * theGrid.yAmount, bombAmount, chosenCells.length);
   resetGame();
 }
 
 function createCashOutButton() {
   if (!cashOutButton) {
     cashOutButton = createButton("Cash Out");
-    cashOutButton.position(625, 200);
+    cashOutButton.position(650, height/2 - cashOutButton.height/2);
     cashOutButton.mousePressed(cashOut);
   }
   else {
     cashOutButton.show();
   }
 }
+
+function calculatePayoutMultiplier(numberOfTiles, numberOfMines, squaresRevealed) {
+    let safeTiles = numberOfTiles - numberOfMines;
+
+    function factorial(num) {
+      // Source https://www.freecodecamp.org/news/how-to-factorialize-a-number-in-javascript-9263c89a4b38/ 
+      if (num === 0 || num === 1)
+        return 1;
+      for (var i = num - 1; i >= 1; i--) {
+        num *= i;
+      }
+      return num;
+    }
+
+    function combination(n, d) {
+        if (d > n) return 0;
+        return factorial(n) / (factorial(d) * factorial(n - d));
+    }
+
+    let totalCombinations = combination(numberOfTiles, squaresRevealed); // nCr
+    let safeCombinations = combination(safeTiles, squaresRevealed); // nCr
+    
+    let multiplier = 0.99 * (totalCombinations / safeCombinations);
+    
+    return multiplier; 
+  }
