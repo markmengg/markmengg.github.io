@@ -19,25 +19,28 @@ let theGrid = {
 let gem;
 let bombs = [];
 let tileTexture;
-let isGameStarted = false;
+
 let minimumBet = 1; 
 let topBet = money;
 let currentBet = minimumBet;
 let startButton;
+let submitBetButton;
 let betSlider;
 let bombSlider;
-let multiplier = 1;
+let multiplier = 1.01;
 let chosenCells = [];
 let bombAmount = 1;
 let font;
 let bgMusic;
 let gemSound, bombSound;
-let isGameOver = false;
-let hitBombCell = null;
+
+let hitBombCell;
 let totalGained = 0;
 let cashOutButton;
-let lossScreenTimeout = null;
-let bombDisplayTimeout = null;
+let lossScreenTimeout;
+let bombDisplayTimeout;
+
+let gameState = "start";
 
 
 
@@ -61,12 +64,14 @@ function setup() {
 
 function draw() {
   background("#406274");
-  if (!isGameStarted) {
+  if (gameState === "start") {
     startScreen();
   }
-  else {
+  else if (gameState === "game") {
     drawGrid();
-    displayStats();
+  }
+  else if (gameState === "bet") {
+    betScreen(); 
   }
 }
 
@@ -89,34 +94,100 @@ function startScreen() {
 function startGame() {
   bgMusic.loop();
   startButton.hide();
-  isGameStarted = true;
+  
+  resetGame();
+}
+
+function resetGame() {
+  gameState = "bet"; 
   multiplier = 1;
   chosenCells = [];
-  bombAmount = bombSlider.value();
+  hitBombCell = null;
+  currentBet = minimumBet;
   totalGained = 0;
-  multiplier = calculateMultiplier(bombAmount);
-  placeBombs();
-  createCashOutButton();
 }
 
 
-function drawGrid() {
+
+function betScreen() {
+  if(betSlider) {
+    betSlider.show();
+  }
+  if(bombSlider) {
+    bombSlider.show();
+  }
+
+  // Put sliders for betting and bombs
   if (!betSlider) {
     betSlider = createSlider(minimumBet, Math.min(money || 5000, 5000), minimumBet, 1);
-    betSlider.position(625, 70);
-    betSlider.input(() => currentBet = betSlider.value());
+    betSlider.position(width/2 - 65, height/2 - 20);
+    betSlider.input(() => {
+      currentBet = betSlider.value();
+    }
+    );
   }
 
   if (!bombSlider) {
-    bombSlider = createSlider(1, 24, 1, 1);
-    bombSlider.position(625, 500);
+    bombSlider = createSlider(1.00, 24, 1.01, 1);
+    bombSlider.position(width/2 - 65, height/2 + 190);
     bombSlider.input(() => {
       bombAmount = bombSlider.value();
       multiplier = calculateMultiplier(bombAmount);
       placeBombs();
+
+      console.log(bombAmount);
     });
   }
 
+  if(submitBetButton) {
+    submitBetButton.show();
+  }
+  if (!submitBetButton) {
+    submitBetButton = createButton("Submit Bet");
+    submitBetButton.position(width/2 - 40, height/2 + 5);
+    submitBetButton.mousePressed(() => {
+      gameState = "game";
+      bombSlider.hide();
+      betSlider.hide();
+      submitBetButton.hide();
+
+      money -= currentBet;
+
+      placeBombs();
+    });
+
+    return; // Return as we don't need to see the stats
+  }
+
+  displayStats();
+}
+
+
+
+
+function displayStats() {
+  textSize(35);
+  fill("white");
+  textAlign(CENTER);
+  text("Money: $" + money, width/2, height/2 - 230);
+  text("Bet: $" + currentBet, width/2, height/2 - 50);
+  text("Multiplier: x" + multiplier.toFixed(2), width/2, height/2 + 230);
+}
+
+function placeBombs() {
+  bombs = [];
+  while (bombs.length < bombAmount) { 
+    let x = floor(random(theGrid.xAmount));
+    let y = floor(random(theGrid.yAmount));
+    
+    if (!bombs.some(b => b.x === x && b.y === y)) {
+      bombs.push({ x, y });
+    }
+  }
+}
+
+
+function drawGrid() {
   for (let y = 0; y < theGrid.yAmount; y++) {
     for (let x = 0; x < theGrid.xAmount; x++) {
       if (chosenCells.some(cell => cell.x === x && cell.y === y) || hitBombCell && hitBombCell.x === x && hitBombCell.y === y) {
@@ -137,31 +208,8 @@ function drawGrid() {
   }
 }
 
-
-
-function displayStats() {
-  textSize(24);
-  fill("white");
-  textAlign(LEFT);
-  text("Money: $" + money, 600, 120);
-  text("Bet: $" + currentBet, 600, 150);
-  text("Multiplier: x" + multiplier.toFixed(2), 600, 180);
-}
-
-function placeBombs() {
-  bombs = [];
-  while (bombs.length < bombAmount) { 
-    let x = floor(random(theGrid.xAmount));
-    let y = floor(random(theGrid.yAmount));
-    
-    if (!bombs.some(b => b.x === x && b.y === y)) {
-      bombs.push({ x, y });
-    }
-  }
-}
-
 function mousePressed() {
-  if (isGameStarted && !isGameOver) {
+  if (gameState === "game") {
     let xIndex = floor(mouseX / theGrid.cellSize);
     let yIndex = floor(mouseY / theGrid.cellSize);
 
@@ -181,27 +229,13 @@ function mousePressed() {
         multiplier += 0.03;
         let gainedAmount = currentBet * multiplier;
         totalGained += gainedAmount;
-        money += gainedAmount;
         chosenCells.push({ x: xIndex, y: yIndex });
       }
     }
   }
 }
 
-function resetGame() {
-  isGameStarted = true;
-  isGameOver = false;
-  multiplier = 1;
-  chosenCells = [];
-  hitBombCell = null;
-  currentBet = minimumBet;
-  totalGained = 0;
-  placeBombs();
 
-  if (cashOutButton) {
-    cashOutButton.show();
-  }
-}
 
 
 function displayLoss() {
@@ -225,14 +259,14 @@ function displayLoss() {
   }
   bombDisplayTimeout = setTimeout(() => {
     hitBombCell = null; 
-  }, 1000);
+  }, 500);
 
   if (lossScreenTimeout) {
     clearTimeout(lossScreenTimeout);
   }
   lossScreenTimeout = setTimeout(() => {
     resetGame();
-  }, 2000);
+  }, 1000);
 }
 
 
@@ -242,6 +276,7 @@ function calculateMultiplier(bombCount) {
 }
 
 function cashOut() {
+  money += currentBet;
   money += totalGained;
   totalGained = 0;
   resetGame();
