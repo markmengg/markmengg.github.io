@@ -119,16 +119,18 @@ function drawGrid() {
 
   for (let y = 0; y < theGrid.yAmount; y++) {
     for (let x = 0; x < theGrid.xAmount; x++) {
-      if (chosenCells.some(cell => cell.x === x && cell.y === y) || (hitBombCell && hitBombCell.x === x && hitBombCell.y === y)) {
+      if (chosenCells.some(cell => cell.x === x && cell.y === y) || hitBombCell && hitBombCell.x === x && hitBombCell.y === y) {
         let bombHit = bombs.some(b => b.x === x && b.y === y);
-        if (bombHit || (hitBombCell && hitBombCell.x === x && hitBombCell.y === y)) {
+        if (bombHit || hitBombCell && hitBombCell.x === x && hitBombCell.y === y) {
           image(bomb, x * theGrid.cellSize, y * theGrid.cellSize, theGrid.cellSize, theGrid.cellSize);
           bombSound.play();
-        } else {
+        }
+        else {
           image(gem, x * theGrid.cellSize, y * theGrid.cellSize, theGrid.cellSize, theGrid.cellSize);
           gemSound.play();
         }
-      } else {
+      }
+      else {
         image(tileTexture, x * theGrid.cellSize, y * theGrid.cellSize, theGrid.cellSize, theGrid.cellSize);
       }
     }
@@ -170,7 +172,7 @@ function mousePressed() {
 
       let bombHit = bombs.some(b => b.x === xIndex && b.y === yIndex);
       if (bombHit) {
-        money -= (currentBet + totalGained);
+        money -= currentBet + totalGained;
         totalGained = 0;
         hitBombCell = { x: xIndex, y: yIndex };
         displayLoss();
@@ -196,7 +198,9 @@ function resetGame() {
   totalGained = 0;
   placeBombs();
 
-  if (cashOutButton) cashOutButton.show();
+  if (cashOutButton) {
+    cashOutButton.show();
+  }
 }
 
 
@@ -212,14 +216,20 @@ function displayLoss() {
     bombSound.play();
   }
 
-  if (cashOutButton) cashOutButton.hide();
+  if (cashOutButton) {
+    cashOutButton.hide();
+  }
 
-  if (bombDisplayTimeout) clearTimeout(bombDisplayTimeout);
+  if (bombDisplayTimeout) {
+    clearTimeout(bombDisplayTimeout);
+  }
   bombDisplayTimeout = setTimeout(() => {
     hitBombCell = null; 
   }, 1000);
 
-  if (lossScreenTimeout) clearTimeout(lossScreenTimeout);
+  if (lossScreenTimeout) {
+    clearTimeout(lossScreenTimeout);
+  }
   lossScreenTimeout = setTimeout(() => {
     resetGame();
   }, 2000);
@@ -228,7 +238,7 @@ function displayLoss() {
 
 
 function calculateMultiplier(bombCount) {
-  return bombCount === 1 ? 1.01 : 1 + (bombCount / 24) * 24;
+  return bombCount === 1 ? 1.01 : 1 + bombCount / 24 * 24;
 }
 
 function cashOut() {
@@ -242,7 +252,8 @@ function createCashOutButton() {
     cashOutButton = createButton("Cash Out");
     cashOutButton.position(625, 200);
     cashOutButton.mousePressed(cashOut);
-  } else {
+  }
+  else {
     cashOutButton.show();
   }
 }
