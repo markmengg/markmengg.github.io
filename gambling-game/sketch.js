@@ -4,7 +4,14 @@
 
 
 // Extra for Experts:
-// - describe what you did to take this project "above and beyond"
+// style.css styling (styled my buttons and UI backdrop), Arrow functions (pretty much local functions that are called through actions)
+// Factorial multipliers (mathematical operations applied to non-negative integers), font styling (changes font of my text)
+// some function (checks if at least one element meets a condition), round function (rounds math to certain decimal)
+// Set Timeout function (Sets a 'break' or timeout in the code), null (basically sets a value to undefined so it can be redefined)
+
+
+
+// ----- Game Variables -----
 
 let width = 870;
 let height = 550;
@@ -14,6 +21,7 @@ let theGrid = {
   yAmount: 5,
   cellSize: 110
 };
+
 let gem;
 let bombs = [];
 let tileTexture;
@@ -39,6 +47,9 @@ let gameState = "start";
 
 
 
+// ----- Setup and Main Loop -----
+
+// Preload Assets 
 function preload() {
   gem = loadImage("diamond.png");
   bomb = loadImage("bomb.png");
@@ -49,11 +60,11 @@ function preload() {
   bombSound = loadSound("bomb.wav");
 }
 
-
 function setup() {
   createCanvas(width, height);
 }
 
+// Main Game Loop
 function draw() {
   background("#406274");
   if (gameState === "start") {
@@ -71,6 +82,9 @@ function draw() {
 }
 
 
+// ----- Game Logic and Functions -----
+
+// Start Screen
 function startScreen() {
   textAlign(CENTER, CENTER);
   textSize(75);
@@ -92,8 +106,7 @@ function startScreen() {
   }
 }
 
-
-
+// Reset Game State
 function resetGame() {
   gameState = "bet"; 
   chosenCells = [];
@@ -110,8 +123,7 @@ function resetGame() {
   betSlider = null;
 }
 
-
-
+// Betting Screen
 function betScreen() {
   money = Math.round(money * 100) / 100; // Round to 2 decimal places
 
@@ -172,7 +184,10 @@ function betScreen() {
 
 
 
+// ----- Display and User Controls -----
 
+
+// Display Money, Bet, and Multiplier (in Accordance to Bombs)  
 function displayStats() {
   if (gameState === "bet") {
     textSize(35);
@@ -192,6 +207,8 @@ function displayStats() {
   }
 }
 
+
+// Place Bombs Randomly on the Grid
 function placeBombs() {
   bombs = [];
   while (bombs.length < bombAmount) { 
@@ -205,6 +222,7 @@ function placeBombs() {
 }
 
 
+// Draw Grid and Handle Tiles
 function drawGrid() {
   if (!bombDisplayTimeout) createCashOutButton();
 
@@ -228,6 +246,8 @@ function drawGrid() {
   displayStats();
 }
 
+
+// Handle Mouse Clicks on the Grid
 function mousePressed() {
   if (gameState === "game" && !doubleClickTimeout) {
     let xIndex = floor(mouseX / theGrid.cellSize);
@@ -264,8 +284,7 @@ function mousePressed() {
 }
 
 
-
-
+// Display Loss Screen
 function displayLoss() {
   background("#ff3333");
   fill("white");
@@ -289,11 +308,14 @@ function displayLoss() {
 }
 
 
+// Handles Cash Out Action
 function cashOut() {
   money += currentBet * calculatePayoutMultiplier(theGrid.xAmount * theGrid.yAmount, bombAmount, chosenCells.length);
   resetGame();
 }
 
+
+// Creates Cash Out Button
 function createCashOutButton() {
   if (!cashOutButton) {
     cashOutButton = createButton("Cash Out");
@@ -305,6 +327,8 @@ function createCashOutButton() {
   }
 }
 
+
+// Calculate Pay Multiplier Based on Amount of Gems Clicked (ie 1/25 chance -> 1/24 chance should be increased multiplier)
 function calculatePayoutMultiplier(numberOfTiles, numberOfMines, squaresRevealed) {
     let safeTiles = numberOfTiles - numberOfMines;
 
@@ -323,8 +347,8 @@ function calculatePayoutMultiplier(numberOfTiles, numberOfMines, squaresRevealed
         return factorial(n) / (factorial(d) * factorial(n - d));
     }
 
-    let totalCombinations = combination(numberOfTiles, squaresRevealed); // nCr
-    let safeCombinations = combination(safeTiles, squaresRevealed); // nCr
+    let totalCombinations = combination(numberOfTiles, squaresRevealed);
+    let safeCombinations = combination(safeTiles, squaresRevealed);
     
     let multiplier = 0.99 * (totalCombinations / safeCombinations);
     
