@@ -11,6 +11,7 @@
 // toFixed function (returns value in a string value)
 
 
+// Notes for Game: Do not refresh the game! The multiplier slider also adjusts amount of bombs on the playing field.
 
 
 // ----- Game Variables -----
