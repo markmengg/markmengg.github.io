@@ -1,13 +1,15 @@
-// Gambling Game
+// Mines Gambling (Heavily Based on Mines by Stake)
 // Mark Meng
-// October 28th, 2024
+// November 15th, 2024
 
 
 // Extra for Experts:
 // style.css styling (styled my buttons and UI backdrop), Arrow functions (pretty much local functions that are called through actions)
-// Factorial multipliers (mathematical operations applied to non-negative integers), font styling (changes font of my text)
+// Factorial multipliers - sourced (mathematical operations applied to non-negative integers), font styling (changes font of my text)
 // some function (checks if at least one element meets a condition), round function (rounds math to certain decimal)
-// Set Timeout function (Sets a 'break' or timeout in the code), null (basically sets a value to undefined so it can be redefined)
+// Set/Clear Timeout function (Sets a 'break' or timeout in the code), null (basically sets a value to undefined so it can be redefined)
+// toFixed function (returns value in a string value)
+
 
 
 
@@ -25,6 +27,7 @@ let theGrid = {
 let gem;
 let bombs = [];
 let tileTexture;
+let sadBombPic, happyGambler;
 
 let minimumBet = 1; 
 let bombAmount = 1;
@@ -54,6 +57,9 @@ function preload() {
   gem = loadImage("diamond.png");
   bomb = loadImage("bomb.png");
   tileTexture = loadImage("tileTexture.png");
+  sadBombPic = loadImage("sadbomb.png");
+  happyGambler = loadImage("happyGambler.png");
+
   font = loadFont("font.ttf");
   bgMusic = loadSound("BackgroundMusic.mp3");
   gemSound = loadSound("coin.wav");
@@ -62,6 +68,7 @@ function preload() {
 
 function setup() {
   createCanvas(width, height);
+  adjustVolume();
 }
 
 // Main Game Loop
@@ -82,6 +89,8 @@ function draw() {
 }
 
 
+
+
 // ----- Game Logic and Functions -----
 
 // Start Screen
@@ -91,6 +100,8 @@ function startScreen() {
   fill("white");
   textFont(font);
   text("MINES GAMBLING", width / 2, height / 2 - 50);
+  image(happyGambler, width/2 - 150, height/2 - 40);
+
   if (!startButton) {
     startButton = createButton("Start Game");
     startButton.position(width / 2 - startButton.width/2, height / 2 - startButton.width/2 + 100);
@@ -118,14 +129,15 @@ function resetGame() {
   }
 
   // remove so the max bet can be updated
-  if (betSlider)
-    betSlider.remove(); 
+  if (betSlider) {
+    betSlider.remove();
+  } 
   betSlider = null;
 }
 
 // Betting Screen
 function betScreen() {
-  money = Math.round(money * 100) / 100; // Round to 2 decimal places
+  money = Math.round(money * 100) / 100; // Round Money to 2 decimal places
 
   if(betSlider) {
     betSlider.show();
@@ -182,6 +194,13 @@ function betScreen() {
   displayStats();
 }
 
+function adjustVolume() {
+  bgMusic.amp(0.15);
+  gemSound.amp(0.9);
+  bombSound.amp(0.9);
+}
+
+
 
 
 // ----- Display and User Controls -----
@@ -195,7 +214,7 @@ function displayStats() {
     textAlign(CENTER);
     text("Money: $" + money, width/2, height/2 - 230);
     text("Bet: $" + currentBet, width/2, height/2 - 50);
-    text("Multiplier: x" + (calculatePayoutMultiplier(theGrid.xAmount * theGrid.yAmount, bombAmount, 1)).toFixed(2), width/2, height/2 + 230);
+    text("Multiplier: x" + calculatePayoutMultiplier(theGrid.xAmount * theGrid.yAmount, bombAmount, 1).toFixed(2), width/2, height/2 + 230);
   }
   else if (gameState === "game") {
     textSize(35);
@@ -203,7 +222,7 @@ function displayStats() {
     textAlign(CENTER);
     
     text("Bet: $" + currentBet, width - 80, 30);
-    text("Multiplier: x" + (calculatePayoutMultiplier(theGrid.xAmount * theGrid.yAmount, bombAmount, chosenCells.length)).toFixed(2), width - 150, height - 30);
+    text("Multiplier: x" + calculatePayoutMultiplier(theGrid.xAmount * theGrid.yAmount, bombAmount, chosenCells.length).toFixed(2), width - 150, height - 30);
   }
 }
 
@@ -224,7 +243,9 @@ function placeBombs() {
 
 // Draw Grid and Handle Tiles
 function drawGrid() {
-  if (!bombDisplayTimeout) createCashOutButton();
+  if (!bombDisplayTimeout) {
+    createCashOutButton();
+  }
 
   for (let y = 0; y < theGrid.yAmount; y++) {
     for (let x = 0; x < theGrid.xAmount; x++) {
@@ -274,7 +295,9 @@ function mousePressed() {
         cashOutButton.hide();
       } 
       else {
-        if(bombDisplayTimeout) return; // Don't allow player to click on other cells after hitting a bomb
+        if(bombDisplayTimeout) {
+          return;
+        } // Don't allow player to click on other cells after hitting a bomb
 
         chosenCells.push({ x: xIndex, y: yIndex });
         gemSound.play();
@@ -286,11 +309,12 @@ function mousePressed() {
 
 // Display Loss Screen
 function displayLoss() {
-  background("#ff3333");
+  background("#ff5e5e");
   fill("white");
   textAlign(CENTER);
   textSize(50);
-  text("Bet Ended!", width / 2, height / 2);
+  text("Bet Ended!", width / 2, height / 2 - 100);
+  image(sadBombPic, width/2 - 130, height/2 - 75);
 
 
   if (cashOutButton) {
@@ -330,27 +354,31 @@ function createCashOutButton() {
 
 // Calculate Pay Multiplier Based on Amount of Gems Clicked (ie 1/25 chance -> 1/24 chance should be increased multiplier)
 function calculatePayoutMultiplier(numberOfTiles, numberOfMines, squaresRevealed) {
-    let safeTiles = numberOfTiles - numberOfMines;
+  // Based on Stake Mines Logic
+  let safeTiles = numberOfTiles - numberOfMines;
 
-    function factorial(num) {
-      // Source https://www.freecodecamp.org/news/how-to-factorialize-a-number-in-javascript-9263c89a4b38/ 
-      if (num === 0 || num === 1)
-        return 1;
-      for (var i = num - 1; i >= 1; i--) {
-        num *= i;
-      }
-      return num;
+  function factorial(num) {
+    // Source https://www.freecodecamp.org/news/how-to-factorialize-a-number-in-javascript-9263c89a4b38/ 
+    if (num === 0 || num === 1) {
+      return 1;
     }
-
-    function combination(n, d) {
-        if (d > n) return 0;
-        return factorial(n) / (factorial(d) * factorial(n - d));
+    for (let i = num - 1; i >= 1; i--) {
+      num *= i;
     }
-
-    let totalCombinations = combination(numberOfTiles, squaresRevealed);
-    let safeCombinations = combination(safeTiles, squaresRevealed);
-    
-    let multiplier = 0.99 * (totalCombinations / safeCombinations);
-    
-    return multiplier; 
+    return num;
   }
+
+  function combination(n, d) {
+    if (d > n) {
+      return 0;
+    }
+    return factorial(n) / (factorial(d) * factorial(n - d));
+  }
+
+  let totalCombinations = combination(numberOfTiles, squaresRevealed);
+  let safeCombinations = combination(safeTiles, squaresRevealed);
+    
+  let multiplier = 0.99 * (totalCombinations / safeCombinations);
+    
+  return multiplier; 
+}
