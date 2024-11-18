@@ -14,8 +14,9 @@
 - [Grid Demo](grid-demo)
 - [Game of Life](game-of-life)
 - [Rectangle Grid](rectangle-grid)
--[WALKER OOP](walker-oop)
--[WALKER OOP ARRAY](walker-oop-array)
+- [WALKER OOP](walker-oop)
+- [WALKER OOP ARRAY](walker-oop-array)
+- [Fireworks OOP](fireworks-oop)
 
 ## Projects
 - [Interactive Scene](interactive-scene)
