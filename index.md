@@ -20,6 +20,7 @@
 - [CONNECTED NODES](connected-nodes)
 - [COLLIDE 2D](collide)
 - [Local Storage Demo](local-storage)
+- [Inheritance](inherit)
 
 ## Projects
 - [Interactive Scene](interactive-scene)
