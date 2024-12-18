@@ -21,6 +21,8 @@
 - [COLLIDE 2D](collide)
 - [Local Storage Demo](local-storage)
 - [Inheritance](inherit)
+- [Fractal Circles](fractal)
+- [Sierpinski Triangle](sierpinski)
 
 ## Projects
 - [Interactive Scene](interactive-scene)
